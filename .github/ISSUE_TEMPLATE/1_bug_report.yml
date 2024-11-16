@@ -21,7 +21,6 @@ body:
     id: expected-behavior
     attributes:
       label: What did you expect to happen?
-      description: Also tell us, what did you expect to happen?
     validations:
       required: true
 
@@ -32,14 +31,16 @@ body:
       options:
         - Yes, consistently
         - Only sometimes
-        - No
+        - "No"
+    validations:
+      required: true
 
   - type: input
     id: version
     attributes:
       label: CLI Version
       description: What version of the CLI are you running?
-      placeholder: ex. v0.1.0
+      placeholder: qlty --version
     validations:
       required: true
 
