@@ -1,4 +1,4 @@
-name: Bug Report
+name: Plugin request
 description: Request a new linter or auto-formatter plugin.
 title: "[Bug]: "
 labels: ["bug", "triage"]
