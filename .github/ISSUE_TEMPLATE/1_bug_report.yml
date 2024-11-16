@@ -17,7 +17,7 @@ body:
     validations:
       required: true
 
-  - type: textarea
+  - type: input
     id: expected-behavior
     attributes:
       label: What did you expect to happen?
