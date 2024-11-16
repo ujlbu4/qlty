@@ -6,3 +6,6 @@ contact_links:
   - name: Feature requests
     url: https://github.com/orgs/qltysh/discussions/categories/feedback
     about: Please share your ideas as feedback discussions.
+  - name: Join our Discord
+    url: https://qlty.sh/discord
+    about: Chat with the development team.
