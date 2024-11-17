@@ -19,6 +19,8 @@ All types of contributions are encouraged and valued. See the [Table of Contents
 - [Reporting Bugs](#reporting-bugs)
 - [Suggesting Enhancements](#suggesting-enhancements)
 
+_Note:_ This guide is based on the [contributing.md](https://contributing.md/).
+
 ## Code of Conduct
 
 This project and everyone participating in it is governed by our
@@ -127,7 +129,3 @@ _Target:_ None
 Once a ticket has sufficient information to proceed to implementation, it is up to the Qlty team to decide if and when it will be worked on. The team will communicate with customers via GitHub when updates are available.
 
 **GitHub is the source of truth for the customer.**
-
-#### Attribution
-
-This guide is based on the [contributing.md](https://contributing.md/).
