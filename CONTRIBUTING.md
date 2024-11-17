@@ -102,6 +102,32 @@ Enhancement suggestions are tracked as GitHub Discussions in the [Feedback categ
 - You may want to **include screenshots and animated GIFs** which help you demonstrate the steps or point out the part which the suggestion is related to. You can use [this tool](https://www.cockos.com/licecap/) to record GIFs on macOS and Windows, and [this tool](https://github.com/colinkeenan/silentcast) or [this tool](https://github.com/GNOME/byzanz) on Linux.
 - **Explain why this enhancement would be useful** to most Qlty users. You may also want to point out the other projects that solved it better and which could serve as inspiration.
 
+## Triage Process
+
+### Step 1. Validate
+
+In order to focus our efforts were they'll have the largest impact, we require that submissions are sent through the right channel based on their content, and adhere to our form templates.
+
+If we receive reports in the wrong channels or without the necessary details, we will reply and close them in order to keep things tidy.
+
+### Step 2. Respond
+
+_Target_: One week
+
+We aim to provide an initial response from a Qlty team member within one week by responding to each Issue, Discussion, or Pull Request with one of the following actions:
+
+1. Requesting more information, if needed
+2. Making and communicating a decision about if or how we would like to proceed
+3. Closing the ticket
+
+### Step 3. Resolve
+
+_Target:_ None
+
+Once a ticket has sufficient information to proceed to implementation, it is up to the Qlty team to decide if and when it will be worked on. The team will communicate with customers via GitHub when updates are available.
+
+**GitHub is the source of truth for the customer.**
+
 #### Attribution
 
 This guide is based on the [contributing.md](https://contributing.md/).
