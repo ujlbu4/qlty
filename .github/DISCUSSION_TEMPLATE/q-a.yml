@@ -44,8 +44,9 @@ body:
     id: qlty-info
     attributes:
       label: Information about Qlty configuration and environment (optional)
+      description: Your Qlty project config and environment information
       value: |
-        <!-- Paste your Qlty project config below -->
+        <!-- Paste your Qlty project configuration below -->
         ```toml
         // Add your qlty.toml
         ```
