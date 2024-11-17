@@ -1,0 +1,19 @@
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing a Qlty feature.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Problem statement
+      description: What problem could Qlty solve that it doesn't?
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Solution brainstorm (optional)
+      description: We'd love to hear your ideas for how we can solve this problem.
