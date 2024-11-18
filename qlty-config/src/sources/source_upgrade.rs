@@ -193,7 +193,7 @@ mod test {
     fn test_update_config_tag_with_source() {
         let input = r#"
             [[source]]
-            repository = "https://github.com/qltyai/plugins.git"
+            repository = "https://github.com/qltysh/qlty"
             tag = "v1.0.0"
         "#;
 
@@ -209,7 +209,7 @@ mod test {
 
         let updated_contents = r#"
             [[source]]
-            repository = "https://github.com/qltyai/plugins.git"
+            repository = "https://github.com/qltysh/qlty"
             tag = "v1.2.3"
         "#;
         assert_eq!(result.unwrap().unwrap(), updated_contents);
@@ -219,7 +219,7 @@ mod test {
     fn test_update_config_tag_with_sources() {
         let input = r#"
             [sources.default]
-            repository = "https://github.com/qltyai/plugins.git"
+            repository = "https://github.com/qltysh/qlty"
             tag = "v0.101.0"
         "#;
 
@@ -235,7 +235,7 @@ mod test {
 
         let updated_contents = r#"
             [sources.default]
-            repository = "https://github.com/qltyai/plugins.git"
+            repository = "https://github.com/qltysh/qlty"
             tag = "v1.2.3"
         "#;
 
@@ -367,7 +367,7 @@ mod test {
     fn test_update_config_tag_with_source_without_v() {
         let input = r#"
             [[source]]
-            repository = "https://github.com/qltyai/plugins.git"
+            repository = "https://github.com/qltysh/qlty"
             tag = "v1.0.0"
         "#;
 
@@ -383,7 +383,7 @@ mod test {
 
         let output = r#"
             [[source]]
-            repository = "https://github.com/qltyai/plugins.git"
+            repository = "https://github.com/qltysh/qlty"
             tag = "1.2.3"
         "#;
 
@@ -394,7 +394,7 @@ mod test {
     fn test_update_config_tag_with_source_without_semver() {
         let input = r#"
             [[source]]
-            repository = "https://github.com/qltyai/plugins.git"
+            repository = "https://github.com/qltysh/qlty"
             tag = "v1.0.0"
         "#;
 
@@ -414,7 +414,7 @@ mod test {
     fn test_update_config_tag_without_ref_tag() {
         let input = r#"
             [[source]]
-            repository = "https://github.com/qltyai/plugins.git"
+            repository = "https://github.com/qltysh/qlty"
             tag = "v1.0.0"
         "#;
 
@@ -434,7 +434,7 @@ mod test {
     fn test_update_config_tag_with_ref_tag_non_semver() {
         let input = r#"
             [[source]]
-            repository = "https://github.com/qltyai/plugins.git"
+            repository = "https://github.com/qltysh/qlty"
             tag = "v1.0.0"
         "#;
 

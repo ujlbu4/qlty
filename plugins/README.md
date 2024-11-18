@@ -4,7 +4,7 @@ This is the official repository containing Qlty's integrations with linters, for
 
 ```toml
 [sources.default]
-repository = "https://github.com/qltyai/plugins.git"
+repository = "https://github.com/qltysh/qlty"
 tag = "v0.13.0"
 ```
 

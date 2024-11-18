@@ -2,7 +2,7 @@ use super::{Renderer, Settings};
 use anyhow::{bail, Result};
 use qlty_config::{config::Builder, sources::SourcesList};
 
-const DEFAULT_SOURCE_REPOSITORY: &str = "https://github.com/qltyai/plugins.git";
+const DEFAULT_SOURCE_REPOSITORY: &str = "https://github.com/qltysh/qlty";
 
 #[derive(Debug, Clone, Default)]
 pub struct SourceSpec {

@@ -1,7 +1,7 @@
 config_version = "0"
 
 [sources.default]
-repository = "https://github.com/qltyai/plugins.git"
+repository = "https://github.com/qltysh/qlty"
 tag = "v0.13.0-pre"
 
 [runtimes.enabled]
