@@ -1,5 +1,5 @@
 [workspace.package]
-version = "0.439.0"
+version = "0.440.0"
 authors = ["Qlty Software Inc."]
 description = "Code quality toolkit"
 documentation = "https://docs.qlty.sh"
