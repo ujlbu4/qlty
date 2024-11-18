@@ -73,7 +73,7 @@ Read our documentation about [configuration](https://docs.qlty.sh/analysis-confi
 
 ## Development
 
-Develpoing on Qlty CLI requires a working Rust toolchain.
+Developing on Qlty CLI requires a working [Rust toolchain](https://rustup.rs/).
 
 ```bash
 cargo build
