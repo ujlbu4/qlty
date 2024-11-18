@@ -1,0 +1,113 @@
+name: "🦀 Integration Tests"
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "**/ruby.rs"
+      - "**/ruby/**/*.rs"
+      - .github/workflows/cli_integration.yml
+    branches:
+      - main
+  pull_request:
+    paths:
+      - "**/ruby.rs"
+      - "**/ruby/**/*.rs"
+      - .github/workflows/cli_integration.yml
+
+permissions:
+  actions: write
+  contents: read
+  id-token: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: 🏗️ Build Release CLI
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout cloud
+        uses: actions/checkout@v4
+
+      - name: 🦀 Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: 🫙 Cache Rust
+        uses: Swatinem/rust-cache@v2
+
+      - name: 🏗️ Build Release CLI
+        run: cargo build --release
+
+      - name: 📦 Archive CLI
+        uses: actions/upload-artifact@v4
+        with:
+          name: qlty
+          path: target/release/qlty
+
+  test_ruby_binary_install:
+    name: "🧪 Test: Ruby Binary Install"
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        container: [
+            "ubuntu:24.04",
+            "redhat/ubi9",
+            "debian:trixie-slim",
+            "debian:bookworm-slim",
+            # unsupported:
+            # "ubuntu:20.04",
+            # "redhat/ubi8",
+          ]
+        include:
+          - container: ubuntu:24.04
+            package_install: apt-get update && apt-get install -y git curl libyaml-dev libgmp-dev build-essential
+          - container: debian:trixie-slim
+            package_install: apt-get update && apt-get install -y git curl libyaml-dev libgmp-dev build-essential
+          - container: debian:bookworm-slim
+            package_install: apt-get update && apt-get install -y git curl libyaml-dev libgmp-dev build-essential
+          - container: redhat/ubi9
+            package_install: yum install -y git gcc make libyaml-devel gmp-devel
+          # unsupported:
+          # - container: ubuntu:20.04
+          #   package_install: apt-get update && apt-get install -y git curl libyaml-dev libgmp-dev build-essential
+          # - container: redhat/ubi8
+          #   package_install: yum install -y git gcc make libyaml-devel gmp-devel
+    container:
+      image: ${{ matrix.container }}
+      env:
+        QLTY_LOG: debug
+        QLTY_LOG_STDERR: 1
+
+    steps:
+      - run: ${{ matrix.package_install }}
+
+      - name: ⚙️ Setup Repository
+        run: |
+          mkdir repo
+          cd repo
+          echo 'CONST = 1' > main.rb
+          git init .
+          git config --global user.email "user@example.com"
+          git config --global user.name "Test User"
+          git add .
+          git commit -m "Initial commit"
+
+      - name: 📦 Download CLI
+        uses: actions/download-artifact@v4
+        with:
+          name: qlty
+          path: ${{ github.workspace }}/bin
+
+      - name: "🚦 Run Test"
+        run: |
+          export PATH=$GITHUB_WORKSPACE/bin:$PATH
+          chmod +x $GITHUB_WORKSPACE/bin/qlty
+          qlty init -n
+          qlty plugins enable standardrb
+          qlty check --all --no-cache --no-progress --filter=standardrb
+        working-directory: repo

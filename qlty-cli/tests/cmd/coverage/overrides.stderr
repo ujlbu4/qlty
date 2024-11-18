@@ -1,0 +1,11 @@
+qlty [..] ([..] debug)
+https://qlty.sh/docs/coverage
+
+  Retrieving CI metadata...
+  → GitHub CI commit "2ca1bc45a94e37c8dbae6fd9e19fc069ba64bd67" on branch "test-branch-1"
+
+  Reading code coverage data...
+  → Found 1 files with code coverage data
+
+  Exporting code coverage data...
+  → Exported to "tmp/qlty-coverage"

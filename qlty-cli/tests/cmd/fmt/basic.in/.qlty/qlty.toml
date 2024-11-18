@@ -1,0 +1,12 @@
+config_version = "0"
+
+[sources.default]
+repository = "https://github.com/qltyai/plugins.git"
+tag = "v0.13.0-pre"
+
+[runtimes.enabled]
+python = "3.10.13"
+
+[[plugin]]
+name = "black"
+version = "24.1.1"

@@ -1,0 +1,9 @@
+config_version = "0"
+
+[[source]]
+name = "default"
+repository = "https://github.com/qltyai/plugins.git"
+tag = "v0.102.0"
+
+[[plugin]]
+name = "black"

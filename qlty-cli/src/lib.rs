@@ -1,0 +1,140 @@
+pub mod allocator;
+mod arguments;
+mod commands;
+mod errors;
+mod initializer;
+mod logging;
+pub mod shell;
+mod success;
+mod telemetry;
+mod ui;
+mod upgrade;
+mod version;
+
+pub use arguments::Arguments;
+pub use errors::CommandError;
+pub use initializer::Initializer;
+pub use success::{CommandSuccess, Trigger};
+pub use telemetry::Telemetry;
+pub use upgrade::QltyRelease;
+
+use crate::logging::init_logs;
+use clap::Parser;
+use console::style;
+use qlty_config::Workspace;
+use std::panic;
+use std::time::Instant;
+use tracing::{debug, error, info, trace};
+
+pub fn run_command_line() {
+    let start_time = Instant::now();
+    let current = std::env::current_dir().expect("current dir");
+    let repository_path = Workspace::closest_git_repository_path(&current);
+
+    // WARNING: Do NOT refactor this logging code! It is critical that the _guards variable
+    // be loaded into the main() function scope, otherwise the logs will not be flushed to disk.
+    let _guards = init_logs(repository_path.clone());
+    trace!("Repository path: {:?}", repository_path);
+
+    let command = std::env::args().collect::<Vec<String>>().join(" ");
+    info!("Executing command: {}", command);
+
+    let arguments = Arguments::parse();
+    debug!("Arguments: {:?}", arguments);
+
+    let telemetry = Telemetry::new(&command, start_time, repository_path.clone(), None);
+    setup_panic_hook(telemetry.clone());
+
+    let result = arguments.execute();
+    debug!("Command result: {:?}", result);
+    handle_result(&telemetry, &command, result);
+}
+
+fn handle_result(
+    telemetry: &Telemetry,
+    command: &str,
+    result: Result<CommandSuccess, CommandError>,
+) {
+    match result {
+        Ok(command_success) => {
+            info!(
+                "Command executed successfully in {:.2}s: {}",
+                telemetry.start_time.elapsed().as_secs_f32(),
+                command,
+            );
+            telemetry.track_command_success(&command_success).ok();
+
+            if let Some(count) = command_success.issues_count {
+                let fixed_count = command_success.fixed_count;
+                if count == 0 {
+                    eprintln!("{}", style("✔ 0 issues").green().bold());
+                } else if fixed_count > 0 {
+                    let remaining = count - fixed_count;
+                    if remaining > 0 {
+                        eprintln!(
+                            "{}",
+                            style(format!("✖ {}/{} fixed issues", fixed_count, count))
+                                .red()
+                                .bold()
+                        );
+                    } else {
+                        eprintln!(
+                            "{}",
+                            style(format!("✔ {} fixed issues", count)).green().bold()
+                        );
+                    }
+                } else {
+                    eprintln!("{}", style(format!("✖ {} issues", count)).red().bold());
+                }
+
+                if fixed_count == 0 && command_success.fixable_count > 0 {
+                    eprintln!(
+                        "{} Detected {} fixable issues, run with {} to apply them.",
+                        style("ℹ").yellow().bold(),
+                        style(format!("{}", command_success.fixable_count)).yellow(),
+                        style("--fix").yellow()
+                    );
+                }
+            }
+
+            std::process::exit(command_success.exit_code());
+        }
+        Err(command_error) => {
+            match command_error {
+                CommandError::InvalidOptions { ref message } => {
+                    error!("Invalid options: {}", message);
+                    eprintln!("{} {}", style("error:").red().bold(), message);
+                    eprintln!();
+                    eprintln!("For more information, try {}.", style("'--help'").bold());
+                }
+                CommandError::Config => {
+                    error!("Config error");
+                    eprintln!("❌ Config error");
+                }
+                CommandError::Lint => {
+                    error!("Lint error");
+                    eprintln!("❌ Lint error");
+                }
+                CommandError::Unknown { ref source } => {
+                    error!("Command failed: {}", command);
+                    error!("{:?}", source);
+                    eprintln!("❌ {:?}", source);
+                }
+            }
+
+            telemetry.track_command_error(&command_error).ok();
+            std::process::exit(command_error.exit_code());
+        }
+    }
+}
+
+fn setup_panic_hook(telemetry: Telemetry) {
+    trace!("Setting up panic hook");
+    let telemetry = telemetry.clone();
+
+    let next = panic::take_hook();
+    panic::set_hook(Box::new(move |info| {
+        telemetry.track_panic(info).ok();
+        next(info);
+    }));
+}

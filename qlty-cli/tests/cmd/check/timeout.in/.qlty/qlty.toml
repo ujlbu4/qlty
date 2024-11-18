@@ -1,0 +1,15 @@
+config_version = "0"
+
+[plugins.definitions.timeout]
+file_types = ["shell"]
+
+[plugins.definitions.timeout.drivers.lint]
+prepare_script = "mkdir ${linter} && echo (ping -n 20 127.0.0.1>NUL) > ${linter}/sleep.cmd"
+script = "sleep 800"
+success_codes = [0]
+output = "pass_fail"
+timeout = 2
+
+[[plugin]]
+name = "timeout"
+version = "1.0.0"

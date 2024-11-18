@@ -1,0 +1,30 @@
+[package]
+name = "qlty-cloud"
+version.workspace = true
+authors.workspace = true
+description.workspace = true
+documentation.workspace = true
+homepage.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+license.workspace = true
+edition.workspace = true
+
+[lib]
+doctest = false
+test = false
+
+[dependencies]
+anyhow.workspace = true
+dialoguer.workspace = true
+flate2.workspace = true
+keyring.workspace = true
+prost.workspace = true
+qlty-analysis.workspace = true
+qlty-types.workspace = true
+serde_json.workspace = true
+serde.workspace = true
+tracing.workspace = true
+ureq.workspace = true
+webbrowser.workspace = true

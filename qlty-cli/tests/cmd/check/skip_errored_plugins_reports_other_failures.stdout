@@ -1,0 +1,9 @@
+
+ ISSUES 
+
+:0:0
+    0:0  high    always_fail failed  always_fail:fail
+
+Lint error always_error: Exited with code 1 .qlty/out/invocations/invoke-[..].yaml
+
+Checked 4 files

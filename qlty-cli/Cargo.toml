@@ -1,0 +1,98 @@
+[package]
+name = "qlty"
+version.workspace = true
+authors.workspace = true
+description.workspace = true
+documentation.workspace = true
+homepage.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+license.workspace = true
+edition.workspace = true
+autotests = false
+
+[lib]
+name = "qlty"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+bench = false
+path = "src/main.rs"
+name = "qlty"
+
+[[test]]
+name = "integration"
+path = "tests/tests.rs"
+
+[features]
+default = ["alpha"]
+alpha = []
+llm = []
+skills = []
+
+[dependencies]
+anyhow.workspace = true
+bytesize.workspace = true
+cap.workspace = true
+chrono.workspace = true
+clap_complete.workspace = true
+clap.workspace = true
+cli-table.workspace = true
+console.workspace = true
+dialoguer.workspace = true
+duct.workspace = true
+git2.workspace = true
+glob.workspace = true
+globset.workspace = true
+indicatif.workspace = true
+itertools.workspace = true
+lazy_static.workspace = true
+log.workspace = true
+mac_address.workspace = true
+md5.workspace = true
+num-format.workspace = true
+pathdiff.workspace = true
+pbjson-types.workspace = true
+qlty-analysis.workspace = true
+qlty-check.workspace = true
+qlty-cloud.workspace = true
+qlty-config.workspace = true
+qlty-coverage.workspace = true
+qlty-llm.workspace = true
+qlty-skills.workspace = true
+qlty-smells.workspace = true
+qlty-test-utilities.workspace = true
+qlty-types.workspace = true
+rayon.workspace = true
+regex.workspace = true
+semver.workspace = true
+sentry-backtrace.workspace = true
+sentry.workspace = true
+serde_json.workspace = true
+serde_yaml.workspace = true
+serde-xml-rs.workspace = true
+serde.workspace = true
+supports-color.workspace = true
+syntect.workspace = true
+tabwriter.workspace = true
+tempfile.workspace = true
+termbg.workspace = true
+thiserror.workspace = true
+time.workspace = true
+toml_edit.workspace = true
+tracing-appender.workspace = true
+tracing-subscriber.workspace = true
+tracing.workspace = true
+ureq.workspace = true
+uuid.workspace = true
+webbrowser.workspace = true
+whoami.workspace = true
+
+[dev-dependencies]
+trycmd.workspace = true
+
+[target.'cfg(unix)'.dependencies]
+exec.workspace = true
+fork.workspace = true

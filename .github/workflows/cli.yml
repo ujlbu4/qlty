@@ -1,0 +1,59 @@
+name: 🚦 CLI Tests
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  actions: write
+  contents: read
+  id-token: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          [ubuntu-latest-16-cores, macos-latest-xlarge, windows-latest-16-cores]
+    name: 🚦 Test
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: 🛑 Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.12.1
+
+      - run: git config --global core.autocrlf false
+
+      - name: ⬇️ Checkout qlty
+        uses: actions/checkout@v4
+
+      - name: 🦀 Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+
+      - name: Setup PHP with PECL extension
+        uses: shivammathur/setup-php@v2
+        if: matrix.os == 'macos-latest-xlarge'
+
+      - name: 🫙 Cache Rust
+        uses: Swatinem/rust-cache@v2
+
+      - name: 🚦 Run Test
+        run: cargo llvm-cov --lcov --output-path target/lcov.info -- --include-ignored
+
+      - uses: qltysh/qlty-action/coverage@main
+        with:
+          coverage-token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+          files: target/lcov.info
+          tag: cli
+          skip-errors: true

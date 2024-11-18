@@ -1,0 +1,1 @@
+❌ Could not find a plugin for fetch item: FetchItem { url: "https://raw.githubusercontent.com/codeclimate/styleguide/master/ruby/something.yml", path: ".something.yml" }

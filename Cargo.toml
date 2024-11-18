@@ -1,0 +1,185 @@
+[workspace.package]
+version = "0.439.0"
+authors = ["Qlty Software Inc."]
+description = "Code quality toolkit"
+documentation = "https://docs.qlty.sh"
+homepage = "https://qlty.sh"
+repository = "https://github.com/qltysh/qlty"
+keywords = ["TODO"]
+categories = ["TODO"]
+license = "FSL-1.1-GPL-3.0"
+edition = "2021"
+
+[workspace]
+resolver = "2"
+members = ["qlty*"]
+
+[workspace.dependencies]
+anyhow = { version = "1.0.93", features = ["backtrace"] }
+ar = "0.8.0"
+assert-json-diff = "2.0.2"
+base64 = "0.21.7"
+bencher = "0.1.5"
+bytesize = "1.3.0"
+cap = "0.1.2"
+cc = "= 1.0.106"
+chrono = "0.4.38"
+clap = { version = "4.5.20", features = ["derive", "wrap_help"] }
+clap_complete = "4.5.34"
+cli-table = "0.4.9"
+config = "0.13.3"
+console = "0.15.8"
+dialoguer = "0.11.0"
+diffy = "0.4.0"
+duct = { git = "https://github.com/brynary/duct.rs.git" }
+exec = "0.3.1"
+flate2 = "1.0.19"
+fork = "0.2.0"
+fs_extra = "=1.3.0"
+fslock = "0.2.1"
+git2 = { version = "0.18.3", features = [
+    "vendored-libgit2",
+    "vendored-openssl",
+] }
+glob = "0.3.1"
+globset = "0.4.15"
+ignore = "0.4.22"
+indicatif = "0.17.8"
+indoc = "2.0.5"
+insta = { version = "1.41.1", features = ["yaml", "redactions"] }
+itertools = "0.13.0"
+keyring = "3.6.1"
+lazy_static = "1.5.0"
+log = "0.4.22"
+lzma-rs = "0.3.0"
+mac_address = "1.1.7"
+md5 = "0.7.0"
+num-format = "0.4.4"
+num_cpus = "1.15.0"
+once_cell = "1.20.2"
+openai-api-rs = "4.1.1"
+path-absolutize = "3.1.1"
+pathdiff = "0.2.2"
+pbjson = "0.6.0"
+pbjson-types = "0.6.0"
+prost = "0.12.6"
+qlty-analysis = { path = "qlty-analysis" }
+qlty-check = { path = "qlty-check" }
+qlty-cloud = { path = "qlty-cloud" }
+qlty-config = { path = "qlty-config" }
+qlty-coverage = { path = "qlty-coverage" }
+qlty-llm = { path = "qlty-llm" }
+qlty-skills = { path = "qlty-skills" }
+qlty-smells = { path = "qlty-smells" }
+qlty-test-utilities = { path = "qlty-test-utilities" }
+qlty-types = { path = "qlty-types" }
+rand = "0.8.5"
+rayon = "1.10.0"
+regex = "1.11.0"
+semver = "1.0.23"
+sentry = { version = "0.34.0", default-features = false, features = [
+    "backtrace",
+    "contexts",
+    "panic",
+    "debug-images",
+    "ureq",
+] }
+sentry-backtrace = "0.34.0"
+serde = { version = "1.0.215", features = ["derive", "rc"] }
+serde_json = { version = "1.0.132", features = ["preserve_order"] }
+serde_with = "3.8.1"
+serde_yaml = "0.9.34"
+serde-xml-rs = "0.6.0"
+sha2 = "0.10.6"
+shell-escape = "0.1.5"
+similar = "2.6.0"
+supports-color = "3.0.1"
+syntect = "5.2.0"
+sysinfo = "0.31.4"
+tabwriter = { version = "1.4.0", features = ["ansi_formatting"] }
+tar = "0.4.43"
+tempfile = "3.13.0"
+termbg = "0.6.0"
+thiserror = "1.0.65"
+time = { version = "0.3.36", features = [
+    "serde-well-known",
+    "formatting",
+    "parsing",
+] }
+toml = "0.8.2"
+toml_edit = "0.22.21"
+tracing = "0.1.40"
+tracing-appender = "0.2.3"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+tracing-test = "0.2.5"
+tree-sitter = "0.22.6"
+tree-sitter-go = "0.21.2"
+tree-sitter-java = "0.21.0"
+tree-sitter-javascript = "0.21.4"
+tree-sitter-kotlin = "0.3.8"
+tree-sitter-php = "0.22.8"
+tree-sitter-python = "0.21.0"
+tree-sitter-ruby = "0.21.0"
+tree-sitter-rust = "0.21.2"
+tree-sitter-typescript = "0.21.2"
+trycmd = "0.15.8"
+ureq = { version = "2.10.1", features = ["json"] }
+url = "2.5.2"
+uuid = { version = "1.11.0", features = ["v4"] }
+walkdir = "2.5.0"
+webbrowser = "1.0.2"
+whoami = "1.5.2"
+zip = "2.2.0"
+
+# Config for 'cargo dist'
+[workspace.metadata.dist]
+# The preferred cargo-dist version to use in CI (Cargo.toml SemVer syntax)
+cargo-dist-version = "0.19.1"
+# CI backends to support
+ci = "github"
+# The installers to generate for each app
+installers = ["shell", "powershell", "homebrew"]
+# Target platforms to build apps for (Rust target-triple syntax)
+targets = [
+    "aarch64-apple-darwin",
+    "aarch64-unknown-linux-gnu",
+    "x86_64-apple-darwin",
+    "x86_64-pc-windows-msvc",
+    "x86_64-unknown-linux-gnu",
+    "x86_64-unknown-linux-musl",
+]
+
+# Path that installers should place binaries in
+install-path = "CARGO_HOME"
+# Publish jobs to run in CI
+pr-run-mode = "plan"
+# Whether to install an updater program
+install-updater = true
+# Skip checking whether the specified configuration files are up to date
+allow-dirty = ["ci"]
+
+[workspace.metadata.dist.github-custom-runners]
+aarch64-apple-darwin = "macos-latest-xlarge"
+aarch64-unknown-linux-gnu = "ubuntu-2204-32-cores-arm64"
+x86_64-apple-darwin = "macos-latest-xlarge"
+x86_64-pc-windows-msvc = "windows-latest-32-cores-x64"
+x86_64-unknown-linux-gnu = "ubuntu-2204-32-cores-x64"
+x86_64-unknown-linux-musl = "ubuntu-2204-32-cores-x64"
+
+[workspace.metadata.release]
+publish = false
+shared-version = true
+sign-commit = true
+sign-tag = true
+tag-name = "v{{version}}"
+
+[profile.dev.package.insta]
+opt-level = 3
+
+[profile.dev.package.similar]
+opt-level = 3
+
+# The profile that 'cargo dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
