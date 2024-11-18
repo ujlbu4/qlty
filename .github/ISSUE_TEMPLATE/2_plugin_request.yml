@@ -1,5 +1,5 @@
 name: Plugin request
-description: Request a new linter or auto-formatter plugin.
+description: Ask for a new linter or auto-formatter plugin
 title: "Plugin request: "
 labels: ["triage"]
 body:
