@@ -20,31 +20,48 @@ Qlty CLI is implemented in Rust, supported by [Qlty Software](https://qlty.sh), 
 
 Qlty CLI is available for MacOS, Linux, and Windows.
 
-```bash
-# Install on MacOS or Linux:
-curl https://qlty.sh | bash
+### Install on MacOS or Linux
 
-# Install on Windows:
+```bash
+curl https://qlty.sh | bash
+```
+
+### Install on Windows
+
+```bash
 powershell -c "iwr https://qlty.sh | iex"
 ```
 
 ## Usage
 
+Setup Qlty within a Git repository:
+
 ```bash
-# Setup Qlty within a Git repository:
 cd my_repo/
 qlty init
+```
 
-# View a sample of lint issues:
+View a sample of lint issues:
+
+```bash
 qlty check --sample=5
+```
 
-# Auto-format the codebase
+Auto-format the codebase:
+
+```bash
 qlty fmt --all
+```
 
-# Scan for code smells like duplication:
+Scan for code smells like duplication:
+
+```bash
 qlty smells --all
+```
 
-# Review a summary of code quality metrics
+Review a summary of code quality metrics:
+
+```bash
 qlty metrics --all --max-depth=2 --sort complexity --limit 10
 ```
 
