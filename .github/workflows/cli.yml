@@ -1,4 +1,4 @@
-name: 🚦 CLI Tests
+name: Unit Tests
 on:
   workflow_dispatch:
   push:
