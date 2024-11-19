@@ -41,13 +41,21 @@ pub struct Init {
     #[arg(long, value_parser = SourceSpec::new)]
     pub source: Option<SourceSpec>,
 
+    /// Warning: this option has been deprecated!
     /// Enable plugin prefix detection.
-    #[arg(long)]
+    #[arg(hide = true, long)]
     pub with_prefixes: bool,
 }
 
 impl Init {
     pub fn execute(&self, args: &Arguments) -> Result<CommandSuccess, CommandError> {
+        if self.with_prefixes {
+            eprintln!(
+                "{} The --with-prefixes option has been deprecated and is no longer needed.",
+                style("⚠").yellow()
+            );
+        }
+
         if !args.no_upgrade_check {
             QltyRelease::upgrade_check().ok();
         }
@@ -77,7 +85,6 @@ impl Init {
                 skip_plugins: self.skip_plugins,
                 skip_default_source: self.skip_default_source,
                 source: self.source.clone(),
-                with_prefixes: self.with_prefixes,
             })?;
 
             initializer.prepare()?;
