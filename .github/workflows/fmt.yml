@@ -22,6 +22,7 @@ jobs:
         with:
           commit_message: qlty fmt --all
           branch: fmt
+          create_branch: true
           commit_user_name: qltysh[bot]
           commit_user_email: 168846912+qltysh[bot]@users.noreply.github.com
           commit_author: qltysh[bot] <168846912+qltysh[bot]@users.noreply.github.com>
