@@ -255,6 +255,7 @@ impl Telemetry {
             "Duration MS": self.start_time.elapsed().as_millis(),
             "Repository": repository_identifier(self.repository_path.clone()),
             "Environment": std::env::var("AWS_EXECUTION_ENV").unwrap_or("LOCAL".to_string()),
+            "CI": std::env::var("CI").is_ok().to_string(),
         });
 
         if cfg!(debug_assertions) {
