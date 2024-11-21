@@ -1,4 +1,8 @@
-use std::{cmp::Reverse, collections::HashMap, path::PathBuf};
+use std::{
+    cmp::Reverse,
+    collections::HashMap,
+    path::{Path, PathBuf},
+};
 
 use anyhow::Result;
 use qlty_config::{
@@ -146,41 +150,37 @@ impl TargetBatcher {
         }
 
         let mut sorted_configs = self.plugin_configs.clone();
-
-        // If a config is in .qlty/configs directory
-        // Plan as if it is in the root of the workspace
-        // It is going to be moved there by the executor
         let library = Library::new(&self.workspace_root)?;
         let workspace_config_path = library.configs_dir();
-        for config in &mut sorted_configs {
-            if config.path.parent() == Some(&workspace_config_path) {
-                config.path = self.workspace_root.join(config.path.file_name().unwrap());
-            }
-        }
 
         sorted_configs.sort_by(|a, b| {
-            b.path
-                .components()
-                .count()
-                .cmp(&a.path.components().count())
+            let a_in_workspace = a.path.parent() == Some(&workspace_config_path);
+            let b_in_workspace = b.path.parent() == Some(&workspace_config_path);
+
+            match (a_in_workspace, b_in_workspace) {
+                (true, false) => std::cmp::Ordering::Greater, // Workspace configs last
+                (false, true) => std::cmp::Ordering::Less,
+                _ => b
+                    .path
+                    .components()
+                    .count()
+                    .cmp(&a.path.components().count()), // Deeper paths first
+            }
         });
 
         let mut config_targets_map = HashMap::new();
-
         let prefixed_workspace_root = self
             .workspace_root
             .join(self.current_prefix.as_deref().unwrap_or(""));
 
         for target in targets {
+            let full_target_path = target.full_path(&prefixed_workspace_root)?;
+
             for config in &sorted_configs {
-                let config_path = config
-                    .path
-                    .parent()
-                    .expect("Config path should have a parent");
+                let config_path =
+                    normalize_config_path(config, &self.workspace_root, &workspace_config_path);
 
-                let full_target_path = target.full_path(&prefixed_workspace_root)?;
-
-                if full_target_path.starts_with(config_path) {
+                if full_target_path.starts_with(config_path.parent().unwrap()) {
                     config_targets_map
                         .entry(config)
                         .or_insert_with(Vec::new)
@@ -190,12 +190,15 @@ impl TargetBatcher {
             }
         }
 
-        for (config_file, targets) in config_targets_map {
+        for (config, targets) in config_targets_map {
             for targets in targets.chunks(self.compute_chunk_size()) {
                 driver_target_batches.push(DriverTargetBatch {
                     targets: targets.to_vec(),
                     invocation_directory: None,
-                    config_file: Some(config_file.clone()),
+                    config_file: Some(PluginConfigFile {
+                        path: config.path.clone(),
+                        contents: config.contents.clone(),
+                    }),
                 });
             }
         }
@@ -216,6 +219,24 @@ impl TargetBatcher {
         } else {
             1
         }
+    }
+}
+
+// Helper to determine if a config is in the `.qlty/configs` directory
+fn is_workspace_config(config: &PluginConfigFile, workspace_config_path: &Path) -> bool {
+    config.path.parent() == Some(workspace_config_path)
+}
+
+// Helper to normalize config path
+fn normalize_config_path(
+    config: &PluginConfigFile,
+    workspace_root: &Path,
+    workspace_config_path: &Path,
+) -> PathBuf {
+    if is_workspace_config(config, workspace_config_path) {
+        workspace_root.join(config.path.file_name().unwrap())
+    } else {
+        config.path.clone()
     }
 }
 
@@ -400,20 +421,52 @@ mod test {
             2,
             InvocationDirectoryDef::default(),
         );
-        target_batcher.plugin_configs = vec![plugin_config_file(
-            "/User/test/project_root/.qlty/configs/config1",
-        )];
+        target_batcher.plugin_configs = vec![
+            plugin_config_file("/User/test/project_root/.qlty/configs/config1"),
+            plugin_config_file("/User/test/project_root/sub/config2"),
+        ];
 
-        let targets = vec![target_files("file1"), target_files("sub/file2")];
+        let targets = vec![
+            target_files("file1"),
+            target_files("sub/file2"),
+            target_files("sub/file3"),
+        ];
 
-        let batches = target_batcher.compute(&targets).unwrap();
+        let mut batches = target_batcher.compute(&targets).unwrap();
 
-        assert_eq!(batches.len(), 1);
+        // sort for easier comparison
+        batches.sort_by(|a, b| b.targets.len().cmp(&a.targets.len()));
+
+        assert_eq!(batches.len(), 2);
+
         assert_eq!(batches[0].targets.len(), 2);
         assert_eq!(
             batches[0].config_file,
-            Some(plugin_config_file("/User/test/project_root/config1"))
+            Some(plugin_config_file("/User/test/project_root/sub/config2"))
         );
+        assert!(batches[0]
+            .targets
+            .iter()
+            .find(|t| t.path == PathBuf::from("sub/file2"))
+            .is_some());
+        assert!(batches[0]
+            .targets
+            .iter()
+            .find(|t| t.path == PathBuf::from("sub/file3"))
+            .is_some());
+
+        assert_eq!(batches[1].targets.len(), 1);
+        assert_eq!(
+            batches[1].config_file,
+            Some(plugin_config_file(
+                "/User/test/project_root/.qlty/configs/config1"
+            ))
+        );
+        assert!(batches[1]
+            .targets
+            .iter()
+            .find(|t| t.path == PathBuf::from("file1"))
+            .is_some());
     }
 
     #[test]
