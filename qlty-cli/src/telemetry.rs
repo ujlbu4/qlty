@@ -1,7 +1,7 @@
 use self::sanitize::sanitize_command;
 use crate::arguments::is_subcommand;
+use crate::telemetry::analytics::{event_context, event_user, Track};
 use crate::telemetry::git::repository_identifier;
-use crate::telemetry::segment::{segment_context, segment_user, Track};
 use crate::{errors::CommandError, success::CommandSuccess};
 use ::sentry::integrations::panic::message_from_panic_info;
 use anyhow::Result;
@@ -13,15 +13,15 @@ use serde_json::json;
 use std::path::PathBuf;
 use std::time::Instant;
 use time::OffsetDateTime;
-use tracing::{debug, warn};
+use tracing::{debug, trace, warn};
 use uuid::Uuid;
 
+pub mod analytics;
 mod git;
 mod locale;
 mod sanitize;
-pub mod segment;
 
-pub use segment::SegmentClient;
+pub use analytics::AnalyticsClient;
 
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
@@ -122,17 +122,14 @@ impl Telemetry {
     }
 
     fn track(&self, event: &str, properties: serde_json::Value) -> Result<()> {
-        debug!(
-            "Tracking event to Segment (foreground): {}: {:?}",
-            event, properties
-        );
+        trace!("Tracking event (foreground): {}: {:?}", event, properties);
         let message_id = Uuid::new_v4().to_string();
 
         let track = Track {
-            user: segment_user(None, anonymous_id()?),
+            user: event_user(None, anonymous_id()?),
             event: event.to_owned(),
             properties,
-            context: Some(segment_context()),
+            context: Some(event_context()),
             timestamp: Some(OffsetDateTime::now_utc()),
             extra: [("messageId".to_owned(), json!(message_id))]
                 .iter()
@@ -149,12 +146,12 @@ impl Telemetry {
         const COMMAND_ARG: &str = "--track";
 
         let payload = serde_json::to_string(&event)?;
-        let filename = format!("qlty-segment-event-{}.json", message_id);
+        let filename = format!("qlty-event-{}.json", message_id);
         let tempfile_path = std::env::temp_dir().join(filename);
 
         std::fs::write(&tempfile_path, payload)?;
         debug!(
-            "Executing: {} {} {} {}",
+            "Tracking event: {} {} {} {}",
             std::env::current_exe()
                 .expect("Could not determine current executable path")
                 .display(),
@@ -205,7 +202,7 @@ impl Telemetry {
 
         std::fs::write(&tempfile_path, payload)?;
         debug!(
-            "Executing: {} {} {} {}",
+            "Tracking panic: {} {} {} {}",
             std::env::current_exe()
                 .expect("Could not determine current executable path")
                 .display(),
@@ -271,7 +268,7 @@ impl Telemetry {
             TelemetryLevel::Off
         } else {
             if is_subcommand("telemetry") {
-                debug!("Telemetry disabled for telemetry subcommand");
+                debug!("Telemetry disabled for telemetry subcommand to avoid infinite loop");
                 return TelemetryLevel::Off;
             }
 

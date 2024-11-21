@@ -1,16 +1,13 @@
 // Portions of this code are from https://github.com/meilisearch/segment
 // MIT License: https://github.com/meilisearch/segment/blob/main/LICENSE
-use crate::logging::logs_dir;
 use crate::telemetry::locale::current_locale;
 use crate::version::BUILD_IDENTIFIER;
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result};
 use base64::Engine as _;
 use qlty_analysis::version::QLTY_VERSION;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use serde_json::{Map, Value};
-use std::io::Write;
-use std::{fs::OpenOptions, path::PathBuf};
 use time::OffsetDateTime;
 use tracing::debug;
 
@@ -18,13 +15,11 @@ const WRITE_KEY: Option<&str> = option_env!("CIO_WRITE_KEY");
 const TRACK_URL: &str = "https://cdp.customer.io/v1/track";
 
 #[derive(Clone)]
-pub struct SegmentClient {
-    repository_path: Option<PathBuf>,
-}
+pub struct AnalyticsClient;
 
-impl SegmentClient {
-    pub fn new(repository_path: Option<PathBuf>) -> Result<Self> {
-        Ok(Self { repository_path })
+impl AnalyticsClient {
+    pub fn new() -> Result<Self> {
+        Ok(Self {})
     }
 
     pub fn send_track(&self, track: Track) -> Result<()> {
@@ -37,53 +32,28 @@ impl SegmentClient {
 
         let message = Message::from(track);
 
-        if let Err(error) = self.log(&message) {
-            debug!("Could not log telemetry event: {}", error);
-        }
-
         let http_basic_authorization = format!(
             "Basic {}",
             base64::engine::general_purpose::STANDARD
                 .encode(format!("{}:", WRITE_KEY.unwrap_or_default()))
         );
 
+        let data = serde_json::to_value(message)?;
+
         debug!(
-            "POST {} with Authorization: {}: {:?}",
-            TRACK_URL, http_basic_authorization, message
+            "POST {} with Authorization: {}: {}",
+            TRACK_URL, http_basic_authorization, data
         );
 
         ureq::post(TRACK_URL)
             .set("Authorization", &http_basic_authorization)
-            .send_json(serde_json::to_value(message)?)
+            .send_json(data)
             .map(|_| ())
-            .with_context(|| "Failed to send telemetry event to Segment")
-    }
-
-    fn log(&self, message: &Message) -> Result<()> {
-        let log_line = serde_json::to_string(&message)?;
-
-        let mut log_file = OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(self.log_path()?)?;
-        log_file.write_all((log_line + "\n").as_bytes())?;
-
-        Ok(())
-    }
-
-    fn log_path(&self) -> Result<PathBuf> {
-        if let Some(logs_dir) = logs_dir(self.repository_path.clone()) {
-            let log_file_basename = "telemetry";
-            let date_suffix = chrono::Utc::now().format("%Y-%m-%d");
-            let log_filename = format!("{}-{}", log_file_basename, date_suffix);
-            Ok(logs_dir.join(log_filename))
-        } else {
-            Err(anyhow!("Could not determine logs directory"))
-        }
+            .with_context(|| "Failed to send telemetry event")
     }
 }
 
-pub fn segment_user(user_id: Option<String>, anonymous_id: String) -> User {
+pub fn event_user(user_id: Option<String>, anonymous_id: String) -> User {
     match user_id {
         Some(user_id) => User::Both {
             anonymous_id: anonymous_id.clone(),
@@ -95,7 +65,7 @@ pub fn segment_user(user_id: Option<String>, anonymous_id: String) -> User {
     }
 }
 
-pub fn segment_context() -> serde_json::Value {
+pub fn event_context() -> serde_json::Value {
     json!({
         "locale": current_locale(),
         "os": {
