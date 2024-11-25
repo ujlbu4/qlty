@@ -1,5 +1,5 @@
 use super::ToolType;
-use crate::tool::Download;
+use crate::tool::{Download, MAX_TOOL_INSTALL_ATTEMPTS};
 use crate::{
     ui::{ProgressBar as _, ProgressTask},
     Tool,
@@ -8,7 +8,7 @@ use anyhow::Result;
 use once_cell::sync::OnceCell;
 use qlty_config::config::{Cpu, DownloadDef, OperatingSystem, PluginDef, ReleaseDef, System};
 use sha2::Digest;
-use tracing::{debug, info, trace};
+use tracing::{debug, error, info, trace};
 
 const GITHUB_API_VERSION: &str = "2022-11-28";
 const USER_AGENT_PREFIX: &str = "qlty-check";
@@ -250,12 +250,14 @@ impl GitHubRelease {
     }
 
     fn allowed_content_types(&self) -> Vec<String> {
-        ["application/octet-stream",
+        [
+            "application/octet-stream",
             "application/gzip",
             "application/x-ms-dos-executable",
             "application/x-gtar",
             "application/x-xz",
-            "application/zip"]
+            "application/zip",
+        ]
         .iter()
         .map(|s| s.to_string())
         .collect::<Vec<_>>()
@@ -322,6 +324,42 @@ impl Tool for GitHubReleaseTool {
         } else {
             None
         }
+    }
+
+    fn install_with_retry(&self, task: &ProgressTask) -> Result<()> {
+        let mut attempts = 0;
+
+        loop {
+            match self.install(task) {
+                Ok(_) => break,
+                Err(e) => {
+                    error!("{}: tool installation error: {:?}", self.name(), e);
+
+                    if e.to_string().contains("403") {
+                        error!("GitHub rate limit exceeded. Waiting 60 seconds.");
+                        std::thread::sleep(std::time::Duration::from_secs(60));
+                    }
+
+                    attempts += 1;
+                    if attempts >= MAX_TOOL_INSTALL_ATTEMPTS {
+                        error!(
+                            "Max attempts reached for tool installation: {}",
+                            self.name()
+                        );
+                        return Err(e);
+                    }
+
+                    info!(
+                        "Attempting retry #{} for tool installation: {}({:?})",
+                        attempts,
+                        self.name(),
+                        self.version()
+                    );
+                }
+            }
+        }
+
+        Ok(())
     }
 }
 
