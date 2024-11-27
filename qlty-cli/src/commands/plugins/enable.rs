@@ -1,6 +1,7 @@
 use crate::{Arguments, CommandError, CommandSuccess};
 use anyhow::{Context, Result};
 use clap::Args;
+use console::style;
 use qlty_config::Workspace;
 use std::fs;
 use toml_edit::{array, table, value, DocumentMut};
@@ -28,10 +29,7 @@ impl ConfigDocument {
     }
 
     pub fn enable_plugin(&mut self, name: &str, version: &str) -> Result<()> {
-        let workspace = Workspace::new()?;
-        workspace.fetch_sources()?;
-
-        let config = workspace.config()?;
+        let config = self.workspace.config()?;
 
         config
             .plugins
@@ -47,6 +45,13 @@ impl ConfigDocument {
 
         if self.document.get("plugin").is_none() {
             self.document["plugin"] = array();
+        }
+
+        for plugin in self.document["plugin"].as_array_of_tables().unwrap() {
+            if plugin["name"].as_str() == Some(name) {
+                eprintln!("{} Plugin {} is already enabled", style("⚠").yellow(), name);
+                return Ok(());
+            }
         }
 
         let mut plugin_table = table();
@@ -95,5 +100,166 @@ impl Enable {
 
         config.write()?;
         CommandSuccess::ok()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use qlty_analysis::utils::fs::path_to_native_string;
+    use qlty_test_utilities::git::sample_repo;
+
+    use super::*;
+
+    #[test]
+    fn test_enable_plugin() {
+        let (temp_dir, _) = sample_repo();
+        let temp_path = temp_dir.path().to_path_buf();
+
+        fs::create_dir_all(&temp_path.join(path_to_native_string(".qlty"))).ok();
+        fs::write(
+            &temp_path.join(path_to_native_string(".qlty/qlty.toml")),
+            r#"
+config_version = "0"
+
+[plugins.definitions.to_enable]
+file_types = ["ALL"]
+latest_version = "1.1.0"
+
+[plugins.definitions.to_enable.drivers.lint]
+script = "ls -l ${target}"
+success_codes = [0]
+output = "pass_fail"
+            "#,
+        )
+        .ok();
+
+        let workspace = Workspace {
+            root: temp_path.clone(),
+        };
+
+        let mut config = ConfigDocument::new(&workspace).unwrap();
+        config.enable_plugin("to_enable", "latest").unwrap();
+
+        let expected = r#"
+config_version = "0"
+
+[plugins.definitions.to_enable]
+file_types = ["ALL"]
+latest_version = "1.1.0"
+
+[plugins.definitions.to_enable.drivers.lint]
+script = "ls -l ${target}"
+success_codes = [0]
+output = "pass_fail"
+
+[[plugin]]
+name = "to_enable"
+        "#;
+
+        assert_eq!(config.document.to_string().trim(), expected.trim());
+    }
+
+    #[test]
+    fn test_enable_plugin_wrong_plugin_name() {
+        let (temp_dir, _) = sample_repo();
+        let temp_path = temp_dir.path().to_path_buf();
+
+        fs::create_dir_all(&temp_path.join(path_to_native_string(".qlty"))).ok();
+        fs::write(
+            &temp_path.join(path_to_native_string(".qlty/qlty.toml")),
+            r#"
+config_version = "0"
+
+[plugins.definitions.to_enable]
+file_types = ["ALL"]
+latest_version = "1.1.0"
+
+[plugins.definitions.to_enable.drivers.lint]
+script = "ls -l ${target}"
+success_codes = [0]
+output = "pass_fail"
+            "#,
+        )
+        .ok();
+
+        let workspace = Workspace {
+            root: temp_path.clone(),
+        };
+
+        let mut config = ConfigDocument::new(&workspace).unwrap();
+        config.enable_plugin("to_enable", "1.2.1").unwrap();
+
+        let expected = r#"
+config_version = "0"
+
+[plugins.definitions.to_enable]
+file_types = ["ALL"]
+latest_version = "1.1.0"
+
+[plugins.definitions.to_enable.drivers.lint]
+script = "ls -l ${target}"
+success_codes = [0]
+output = "pass_fail"
+
+[[plugin]]
+name = "to_enable"
+version = "1.2.1"
+        "#;
+
+        assert_eq!(config.document.to_string().trim(), expected.trim());
+    }
+
+    #[test]
+    fn test_enable_plugin_when_already_enabled() {
+        let (temp_dir, _) = sample_repo();
+        let temp_path = temp_dir.path().to_path_buf();
+
+        fs::create_dir_all(&temp_path.join(path_to_native_string(".qlty"))).ok();
+        fs::write(
+            &temp_path.join(path_to_native_string(".qlty/qlty.toml")),
+            r#"
+config_version = "0"
+
+[plugins.definitions.already_enabled]
+file_types = ["ALL"]
+latest_version = "1.1.0"
+
+[plugins.definitions.already_enabled.drivers.lint]
+script = "ls -l ${target}"
+success_codes = [0]
+output = "pass_fail"
+
+[[plugin]]
+name = "already_enabled"
+version = "0.9.0"
+            "#,
+        )
+        .ok();
+
+        let workspace = Workspace {
+            root: temp_path.clone(),
+        };
+
+        let mut config = ConfigDocument::new(&workspace).unwrap();
+        config.enable_plugin("already_enabled", "1.2.1").unwrap();
+
+        let expected = r#"
+config_version = "0"
+
+[plugins.definitions.already_enabled]
+file_types = ["ALL"]
+latest_version = "1.1.0"
+
+[plugins.definitions.already_enabled.drivers.lint]
+script = "ls -l ${target}"
+success_codes = [0]
+output = "pass_fail"
+
+[[plugin]]
+name = "already_enabled"
+version = "0.9.0"
+        "#;
+
+        assert_eq!(config.document.to_string().trim(), expected.trim());
     }
 }
