@@ -1,4 +1,4 @@
-name: fmt
+name: Fmt
 
 on:
   workflow_dispatch:
@@ -7,28 +7,31 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
   format:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: qltysh/qlty-action/fmt@main
-
-      - name: Commit changes
-        uses: stefanzweifel/git-auto-commit-action@v5
+      - uses: actions/create-github-app-token@v1
+        id: app-token
         with:
-          commit_message: qlty fmt --all
+          app-id: ${{ vars.QLTY_APP_ID }}
+          private-key: ${{ secrets.QLTY_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: qltysh/qlty-action/fmt@main
+      - name: Commit changes
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          title: qlty fmt --all
+          body: Automated PR for qlty fmt --all
+          labels: chore
           branch: fmt
-          create_branch: true
-          commit_user_name: qltysh[bot]
-          commit_user_email: 168846912+qltysh[bot]@users.noreply.github.com
-          commit_author: qltysh[bot] <168846912+qltysh[bot]@users.noreply.github.com>
-
-      - name: Create PR
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh pr create --fill --body "Automated PR for qlty fmt --all" --base main --head fmt
+          delete-branch: true
+          sign-commits: true
+          commit-message: qlty fmt --all
+          committer: qltysh[bot] <168846912+qltysh[bot]@users.noreply.github.com>
+          author: qltysh[bot] <168846912+qltysh[bot]@users.noreply.github.com>
