@@ -127,17 +127,25 @@ impl Driver {
         let running = Arc::new(AtomicBool::new(true));
         let running_clone = Arc::clone(&running);
 
-        thread::spawn(move || {
-            thread::sleep(Duration::from_secs(timeout));
-            if running_clone.load(Ordering::SeqCst) {
-                error!("Killing {} process after {}s", invocation_label, timeout);
-                Self::terminate_processes(pids);
+        let terminator_handle = thread::spawn(move || {
+            let mut elapsed_millis = 0;
+
+            while running_clone.load(Ordering::Relaxed) {
+                thread::sleep(Duration::from_millis(100));
+                elapsed_millis += 100;
+
+                if (elapsed_millis * 1_000) >= timeout && running_clone.load(Ordering::Relaxed) {
+                    error!("Killing {} process after {}s", invocation_label, timeout);
+                    Self::terminate_processes(&pids);
+                }
             }
         });
 
         let output = handle.into_output()?;
         let duration = timer.elapsed().as_secs_f64();
-        running.store(false, Ordering::SeqCst);
+
+        running.store(false, Ordering::Relaxed);
+        terminator_handle.join().unwrap();
 
         info!(
             "{}: Completed {} in {:.3}s (exit {})",
@@ -150,11 +158,11 @@ impl Driver {
         InvocationResult::from_command_output(plan, rerun, &output, duration)
     }
 
-    pub fn terminate_processes(pids: Vec<u32>) {
+    pub fn terminate_processes(pids: &[u32]) {
         let mut system = System::new_all();
 
         for pid in pids {
-            Self::terminate_process_tree(pid, &mut system);
+            Self::terminate_process_tree(*pid, &mut system);
         }
     }
 
