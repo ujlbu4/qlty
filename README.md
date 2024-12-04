@@ -38,8 +38,8 @@ brew upgrade codeclimate
 ### Anywhere
 
 ```console
-curl -L https://github.com/codeclimate/codeclimate/archive/master.tar.gz | tar xvz
-cd codeclimate-* && sudo make install
+curl -L https://github.com/qltysh/qlty/archive/codeclimate-cli.tar.gz | tar xvz
+cd qlty-* && sudo make install
 ```
 
 To upgrade to a newer version, just run those steps again.
@@ -68,6 +68,7 @@ docker run \
 ```
 
 On windows:
+
 ```powershell
 docker run `
   --interactive --tty --rm `
@@ -99,7 +100,6 @@ analysis. As part of setting up your project, we recommend running `codeclimate
 engines:install` from within your repository before running `codeclimate
 analyze`, and after adding any new plugins to your configuration file.
 
-
 ### Running analysis
 
 Once you've installed plugins and made any necessary changes to your
@@ -127,7 +127,7 @@ Available commands:
 
 The following is a brief explanation of each available command.
 
-* `analyze`
+- `analyze`
   Analyze all relevant files in the current working directory. All
   engines that are enabled in your `.codeclimate.yml` file will run, one after
   another. The `-f` (or `format`) argument allows you to set the output format of
@@ -145,26 +145,27 @@ The following is a brief explanation of each available command.
   not yet written to disk. This is useful when you want to check if your source
   code style matches the project's. This is also a good way to implement
   integration with an editor to check style on the fly.
-* `console`
+
+- `console`
   start an interactive session providing access to the classes
   within the CLI. Useful for engine developers and maintainers.
-* `engines:install`
+- `engines:install`
   Compares the list of engines in your `.codeclimate.yml` file to those that
   are currently installed, then installs any missing engines and checks for new images available for existing engines.
-* `engines:list`
+- `engines:list`
   Lists all available engines in the
   [Code Climate Docker Hub](https://hub.docker.com/u/codeclimate/)
   .
-* `help`
+- `help`
   Displays a list of commands that can be passed to the Code Climate CLI.
-* `validate-config`
+- `validate-config`
   Validates the `.codeclimate.yml` file in the current working directory.
-* `version`
+- `version`
   Displays the current version of the Code Climate CLI.
 
 ## Environment Variables
 
-* To run `codeclimate` in debug mode:
+- To run `codeclimate` in debug mode:
 
   ```
   CODECLIMATE_DEBUG=1 codeclimate analyze
@@ -173,14 +174,14 @@ The following is a brief explanation of each available command.
   Prints additional information about the analysis steps, including any stderr
   produced by engines.
 
-* To increase the amount of time each engine container may run (default 15 min):
+- To increase the amount of time each engine container may run (default 15 min):
 
   ```
   # 30 minutes
   CONTAINER_TIMEOUT_SECONDS=1800 codeclimate analyze
   ```
 
-* You can also configure the default alotted memory with which each engine runs
+- You can also configure the default alotted memory with which each engine runs
   (default is 1,024,000,000 bytes):
 
   ```
@@ -198,8 +199,9 @@ The releasing process includes;
 1. Push new version to rubygems.
 1. Create a new release on Github and an associated tag.
 1. Update docker images:
-  * Push new `latest` image.
-  * Push new image with latest version as tag.
+
+- Push new `latest` image.
+- Push new image with latest version as tag.
 
 Ideally someone will open a pull request against master updating only
 [VERSION](https://github.com/codeclimate/codeclimate/blob/master/VERSION).
