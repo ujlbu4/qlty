@@ -90,12 +90,13 @@ impl Processor {
 
     fn compute_fixes(&mut self) {
         if self.plan.verb == ExecutionVerb::Check && self.plan.settings.fix {
-            self.fixed = Patcher::new(&self.plan.staging_area).try_apply(&self.issues);
+            self.fixed = Patcher::new(&self.plan.staging_area)
+                .try_apply(&self.fixable_issues(), self.plan.settings.r#unsafe);
         }
     }
 
     fn compute_fixable(&mut self) {
-        for issue in self.issues.iter() {
+        for issue in self.fixable_issues().iter() {
             if !issue.suggestions.is_empty() && issue.location.is_some() {
                 self.fixable.insert(FixedResult {
                     rule_key: issue.rule_key.clone(),
@@ -103,6 +104,10 @@ impl Processor {
                 });
             }
         }
+    }
+
+    fn fixable_issues(&self) -> Vec<Issue> {
+        Patcher::filter_issues(&self.issues, self.plan.settings.r#unsafe)
     }
 
     fn transform_issue(&self, issue: &Issue) -> Option<Issue> {
