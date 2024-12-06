@@ -9,67 +9,85 @@ use std::path::Path;
 #[derive(Args, Debug)]
 pub struct Install {}
 
+const QLTY_HOOKS_DIR: &str = ".qlty/hooks";
+
 const PRE_COMMIT_HOOK: &str = r#"#!/bin/sh
 qlty fmt --trigger pre-commit --index-file="$GIT_INDEX_FILE"
 "#;
 
-// const PRE_PUSH_HOOK: &str = r#"#!/bin/sh
-// qlty check --trigger pre-push --upstream-from-pre-push --no-formatters --skip-errored-plugins
-// "#;
+const PRE_PUSH_HOOK: &str = r#"#!/bin/sh
+qlty check --trigger pre-push --upstream-from-pre-push --no-formatters --skip-errored-plugins
+"#;
 
 impl Install {
     pub fn execute(&self, _args: &Arguments) -> Result<CommandSuccess, CommandError> {
         Workspace::require_initialized()?;
 
-        let qlty_hooks_dir = Path::new(".qlty/hooks");
-        fs::create_dir_all(qlty_hooks_dir)?;
+        fs::create_dir_all(QLTY_HOOKS_DIR)?;
 
-        let pre_commit_hook_path = qlty_hooks_dir.join("pre-commit.sh");
-        fs::write(&pre_commit_hook_path, PRE_COMMIT_HOOK).with_context(|| {
-            format!(
-                "Failed to write pre-commit hook to {}",
-                pre_commit_hook_path.display()
-            )
-        })?;
-
-        let git_hooks_dir = Path::new(".git/hooks");
-        let pre_commit_symlink = git_hooks_dir.join("pre-commit");
-
-        if pre_commit_symlink.exists() {
-            fs::remove_file(&pre_commit_symlink).with_context(|| {
-                format!(
-                    "Failed to remove existing pre-commit symlink at {}",
-                    pre_commit_symlink.display()
-                )
-            })?;
-        }
-
-        let pre_comit_hook_relative_path = Path::new("../../.qlty/hooks/pre-commit.sh");
-        symlink(&pre_comit_hook_relative_path, &pre_commit_symlink).with_context(|| {
-            format!(
-                "Failed to create symlink from {} to {}",
-                pre_comit_hook_relative_path.display(),
-                pre_commit_symlink.display()
-            )
-        })?;
-
-        let metadata = fs::metadata(&pre_commit_symlink).with_context(|| {
-            format!(
-                "Failed to get metadata for pre-commit symlink at {}",
-                pre_commit_symlink.display()
-            )
-        })?;
-
-        let mut perms = metadata.permissions();
-        perms.set_mode(0o755);
-
-        fs::set_permissions(&pre_commit_symlink, perms).with_context(|| {
-            format!(
-                "Failed to set permissions on pre-commit symlink at {}",
-                pre_commit_symlink.display()
-            )
-        })?;
+        install_hook("pre-commit", PRE_COMMIT_HOOK)?;
+        install_hook("pre-push", PRE_PUSH_HOOK)?;
 
         CommandSuccess::ok()
     }
+}
+
+fn install_hook(hook_name: &str, contents: &str) -> Result<()> {
+    let script_filename = format!("{}.sh", hook_name);
+    let hook_script_path = Path::new(QLTY_HOOKS_DIR).join(script_filename.clone());
+    fs::write(&hook_script_path, contents).with_context(|| {
+        format!(
+            "Failed to write {} hook to {}",
+            hook_name,
+            hook_script_path.display()
+        )
+    })?;
+
+    let git_hooks_dir = Path::new(".git").join("hooks");
+    let symlink_path = git_hooks_dir.join(hook_name);
+
+    if symlink_path.exists() {
+        fs::remove_file(&symlink_path).with_context(|| {
+            format!(
+                "Failed to remove existing {} symlink at {}",
+                hook_name,
+                symlink_path.display()
+            )
+        })?;
+    }
+
+    let hook_relative_path = Path::new("..")
+        .join("..")
+        .join(".qlty")
+        .join("hooks")
+        .join(script_filename);
+
+    symlink(&hook_relative_path, &symlink_path).with_context(|| {
+        format!(
+            "Failed to create symlink from {} to {}",
+            hook_relative_path.display(),
+            symlink_path.display()
+        )
+    })?;
+
+    let metadata = fs::metadata(&symlink_path).with_context(|| {
+        format!(
+            "Failed to get metadata for {} symlink at {}",
+            hook_name,
+            symlink_path.display()
+        )
+    })?;
+
+    let mut perms = metadata.permissions();
+    perms.set_mode(0o755);
+
+    fs::set_permissions(&symlink_path, perms).with_context(|| {
+        format!(
+            "Failed to set permissions on {} symlink at {}",
+            hook_name,
+            symlink_path.display()
+        )
+    })?;
+
+    Ok(())
 }
