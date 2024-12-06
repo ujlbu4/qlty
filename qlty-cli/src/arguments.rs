@@ -61,6 +61,10 @@ pub enum Commands {
     /// Auto-format
     Fmt(Fmt),
 
+    /// Manage Git hooks
+    #[command(hide = true)]
+    Githooks(githooks::Arguments),
+
     /// Set up Qlty in the repository
     Init(Init),
 
@@ -128,6 +132,7 @@ impl Arguments {
             Commands::Discord(command) => command.execute(self),
             Commands::Docs(command) => command.execute(self),
             Commands::Fmt(command) => command.execute(self),
+            Commands::Githooks(command) => command.execute(self),
             Commands::Install(command) => command.execute(self),
             Commands::Init(command) => command.execute(self),
             Commands::Metrics(command) => command.execute(self),
