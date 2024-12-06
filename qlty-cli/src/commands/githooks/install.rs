@@ -3,7 +3,7 @@ use anyhow::{Context as _, Result};
 use clap::Args;
 use qlty_config::Workspace;
 use std::fs;
-use std::os::unix::fs::{symlink, PermissionsExt as _};
+use std::os::unix::fs::PermissionsExt as _;
 use std::path::Path;
 
 #[derive(Args, Debug)]
@@ -62,7 +62,18 @@ fn install_hook(hook_name: &str, contents: &str) -> Result<()> {
         .join("hooks")
         .join(script_filename);
 
-    symlink(&hook_relative_path, &symlink_path).with_context(|| {
+    let symlink_result;
+
+    #[cfg(windows)]
+    {
+        symlink_result = std::os::windows::fs::symlink_file(&hook_relative_path, &symlink_path);
+    }
+    #[cfg(unix)]
+    {
+        symlink_result = std::os::unix::fs::symlink(&hook_relative_path, &symlink_path);
+    }
+
+    symlink_result.with_context(|| {
         format!(
             "Failed to create symlink from {} to {}",
             hook_relative_path.display(),
