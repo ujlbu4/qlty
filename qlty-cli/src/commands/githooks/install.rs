@@ -81,24 +81,27 @@ fn install_hook(hook_name: &str, contents: &str) -> Result<()> {
         )
     })?;
 
-    let metadata = fs::metadata(&symlink_path).with_context(|| {
-        format!(
-            "Failed to get metadata for {} symlink at {}",
-            hook_name,
-            symlink_path.display()
-        )
-    })?;
+    #[cfg(unix)]
+    {
+        let metadata = fs::metadata(&symlink_path).with_context(|| {
+            format!(
+                "Failed to get metadata for {} symlink at {}",
+                hook_name,
+                symlink_path.display()
+            )
+        })?;
 
-    let mut perms = metadata.permissions();
-    perms.set_mode(0o755);
+        let mut perms = metadata.permissions();
+        perms.set_mode(0o755);
 
-    fs::set_permissions(&symlink_path, perms).with_context(|| {
-        format!(
-            "Failed to set permissions on {} symlink at {}",
-            hook_name,
-            symlink_path.display()
-        )
-    })?;
+        fs::set_permissions(&symlink_path, perms).with_context(|| {
+            format!(
+                "Failed to set permissions on {} symlink at {}",
+                hook_name,
+                symlink_path.display()
+            )
+        })?;
+    }
 
     Ok(())
 }
