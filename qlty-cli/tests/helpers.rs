@@ -78,6 +78,7 @@ fn setup_and_run_test_cases_diff_flag(glob: &str, diff: bool) {
     for case in cases {
         TestCases::new()
             .case(case.strip_prefix(MANIFEST_DIR).unwrap())
+            .env("RUST_BACKTRACE", "0")
             .timeout(Duration::from_secs(DEFAULT_TEST_TIMEOUT));
     }
 }
