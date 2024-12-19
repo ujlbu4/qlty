@@ -84,6 +84,10 @@ pub struct Check {
     #[arg(short, long, action = clap::ArgAction::Count)]
     pub verbose: u8,
 
+    /// Print a summary of issues
+    #[arg(long)]
+    pub summary: bool,
+
     /// Upstream base ref to compare against
     #[arg(long)]
     pub upstream: Option<String>,
@@ -312,7 +316,7 @@ impl Check {
         let formatter = if self.json {
             JsonFormatter::new(report.issues.clone())
         } else {
-            TextFormatter::new(report, &plan.workspace, settings.verbose)
+            TextFormatter::new(report, &plan.workspace, settings.verbose, self.summary)
         };
 
         formatter.write_to(&mut std::io::stdout())

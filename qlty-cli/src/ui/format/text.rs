@@ -20,15 +20,22 @@ pub struct TextFormatter {
     report: Report,
     workspace: Workspace,
     verbose: usize,
+    summary: bool,
 }
 
 impl<'a> TextFormatter {
     // qlty-ignore: clippy:new_ret_no_self
-    pub fn new(report: &Report, workspace: &Workspace, verbose: usize) -> Box<dyn Formatter> {
+    pub fn new(
+        report: &Report,
+        workspace: &Workspace,
+        verbose: usize,
+        summary: bool,
+    ) -> Box<dyn Formatter> {
         Box::new(Self {
             report: report.clone(),
             workspace: workspace.clone(),
             verbose,
+            summary,
         })
     }
 }
@@ -46,9 +53,12 @@ impl fmt::Display for Line {
 
 impl Formatter for TextFormatter {
     fn write_to(&self, writer: &mut dyn std::io::Write) -> anyhow::Result<()> {
-        print_unformatted(writer, &self.report)?;
-        self.print_fixes(writer)?;
-        print_issues(writer, &self.report)?;
+        if !self.summary {
+            print_unformatted(writer, &self.report)?;
+            self.print_fixes(writer)?;
+            print_issues(writer, &self.report)?;
+        }
+
         print_invocations(writer, &self.report, self.verbose)?;
 
         if self.verbose >= 1 && self.report.targets_count() > 0 {
