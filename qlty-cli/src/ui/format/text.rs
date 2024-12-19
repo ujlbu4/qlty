@@ -1,5 +1,6 @@
 use anyhow::Result;
 use console::style;
+use num_format::{Locale, ToFormattedString as _};
 use qlty_analysis::utils::fs::path_to_string;
 use qlty_check::Report;
 use qlty_check::{executor::InvocationStatus, results::FixedResult};
@@ -31,18 +32,29 @@ impl Formatter for TextFormatter {
         if self.verbose >= 1 && self.report.targets_count() > 0 {
             writeln!(
                 writer,
-                "{} {} {}",
+                "{} {} {}{}",
                 match self.report.verb {
                     ExecutionVerb::Check => "Checked",
                     ExecutionVerb::Fmt => "Formatted",
                     _ => "Processed",
                 },
-                self.report.targets_count(),
+                self.report.targets_count().to_formatted_string(&Locale::en),
+                if self.report.target_mode.is_diff() {
+                    "modified "
+                } else {
+                    ""
+                },
                 if self.report.targets_count() == 1 {
                     "file"
                 } else {
                     "files"
                 },
+            )?;
+        } else if self.report.targets_count() == 0 && self.report.target_mode.is_diff() {
+            writeln!(
+                writer,
+                "{}",
+                style("No modified files for linting were found on your branch.").dim()
             )?;
         }
 
@@ -57,7 +69,15 @@ pub fn print_issues(writer: &mut dyn std::io::Write, report: &Report) -> Result<
 
     if !paths.is_empty() {
         writeln!(writer)?;
-        writeln!(writer, "{}", style(" ISSUES ").bold().reverse())?;
+        writeln!(
+            writer,
+            "{}{}{}",
+            style(" ISSUES: ").bold().reverse(),
+            style(report.issues.len().to_formatted_string(&Locale::en))
+                .bold()
+                .reverse(),
+            style(" ").bold().reverse()
+        )?;
         writeln!(writer)?;
     }
 
@@ -88,7 +108,7 @@ pub fn print_issues(writer: &mut dyn std::io::Write, report: &Report) -> Result<
                     ))
                     .dim(),
                     formatted_level(issue.level()),
-                    issue.message.replace('\n', " "),
+                    issue.message.replace('\n', " ").trim(),
                     formatted_source(issue),
                     formatted_fix_message(report, issue),
                 )
@@ -113,16 +133,23 @@ pub fn print_invocations(
     for formatted_path in &report.formatted {
         writeln!(
             writer,
-            "{} {} {}",
+            "{} Formatted {}",
             style("✔").green().bold(),
-            style("Formatted").bold(),
-            path_to_string(formatted_path)
+            style(path_to_string(formatted_path)).underlined()
         )?;
     }
 
     if verbose >= 1 {
         writeln!(writer)?;
-        writeln!(writer, "{}", style(" RESULTS ").bold().reverse())?;
+        writeln!(
+            writer,
+            "{}{}{}",
+            style(" JOBS: ").bold().reverse(),
+            style(report.invocations.len().to_formatted_string(&Locale::en))
+                .bold()
+                .reverse(),
+            style(" ").bold().reverse()
+        )?;
         writeln!(writer)?;
     }
 
