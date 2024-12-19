@@ -6,7 +6,7 @@ use qlty_config::version::QLTY_VERSION;
 pub use token::Token;
 use ureq::Request;
 
-const QLTY_API_URL: &str = "https://qlty.sh/api";
+const QLTY_API_URL: &str = "https://api.qlty.sh";
 const USER_AGENT_PREFIX: &str = "qlty";
 
 #[derive(Default, Debug, Clone)]
