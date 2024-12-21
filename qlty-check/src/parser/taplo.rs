@@ -35,8 +35,7 @@ impl Parser for Taplo {
                     let location = words.get(1).ok_or(anyhow::anyhow!("location not found"))?;
                     let location_parts = location.split(":").collect::<Vec<&str>>();
 
-                    let path = location_parts
-                        .get(0)
+                    let path = location_parts.first()
                         .ok_or(anyhow::anyhow!("path not found"))?;
 
                     let line_string = location_parts
