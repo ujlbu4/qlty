@@ -1,15 +1,13 @@
-use super::DEFAULT_USER;
-use crate::token::{Token, SERVICE};
+use crate::token::{token::DEFAULT_USER, token::SERVICE, Token};
 use actix_web::{
     dev::{Server, ServerHandle},
     get,
-    http::header::LOCATION,
+    http::{header::LOCATION, Uri},
     rt,
     web::{Data, Query},
     App, HttpResponse, HttpResponseBuilder, HttpServer,
 };
-use anyhow::{Ok, Result};
-use console::style;
+use anyhow::Result;
 use serde::Deserialize;
 use std::{
     net::TcpListener,
@@ -17,7 +15,7 @@ use std::{
     thread,
     time::Duration,
 };
-use tracing::{debug, info, warn};
+use tracing::{error, info};
 use uuid::Uuid;
 
 const LOGIN_URL: &str = "https://qlty.sh/login";
@@ -32,14 +30,16 @@ struct AuthFlowQueryParams {
 
 #[derive(Debug, Clone)]
 pub struct AppState {
-    original_state: String,
     server_handle: Arc<Mutex<Option<ServerHandle>>>,
-    credential_user: String,
+    pub login_url: String,
+    pub original_state: String,
+    pub credential_user: String,
 }
 
 impl Default for AppState {
     fn default() -> Self {
         AppState {
+            login_url: std::env::var(LOGIN_URL_ENV).unwrap_or(LOGIN_URL.to_string()),
             original_state: Uuid::new_v4().to_string(),
             server_handle: Arc::new(Mutex::new(None)),
             credential_user: DEFAULT_USER.to_string(),
@@ -53,31 +53,50 @@ async fn auth_flow(
     state: Data<Arc<AppState>>,
 ) -> HttpResponseBuilder {
     if state.original_state != query.state {
-        warn!(
+        error!(
             "Invalid state parameter in auth flow: {:?} did not match received state {:?}",
             state.original_state, query.state
         );
-        HttpResponse::BadRequest()
-    } else {
-        let token = Token::new(&state.credential_user);
+        return HttpResponse::BadRequest();
+    }
 
-        match token.set(&query.code) {
-            Result::Ok(_) => {
-                debug!(
-                    "Auth token stored in credential storage: {}.{}",
-                    SERVICE, state.credential_user
-                );
-                stop_login_server(state);
-                HttpResponse::TemporaryRedirect()
-                    .insert_header((LOCATION, query.redirect_uri.clone()))
-                    .take()
-            }
-            Err(e) => {
-                warn!("Failed to store auth token in credential storage: {}", e);
-                HttpResponse::BadRequest()
-            }
+    if !redirect_matches(state.login_url.clone(), query.redirect_uri.clone()) {
+        error!(
+            "Invalid redirect_uri parameter in auth flow (expecting {}): {}",
+            state.login_url, query.redirect_uri
+        );
+        return HttpResponse::BadRequest();
+    }
+
+    let token = Token::new(&state.credential_user);
+    match token.set(&query.code) {
+        Result::Ok(_) => {
+            info!(
+                "Auth token stored in credential storage: {}.{}",
+                SERVICE, state.credential_user
+            );
+            stop_login_server(state);
+            HttpResponse::TemporaryRedirect()
+                .insert_header((LOCATION, query.redirect_uri.clone()))
+                .take()
+        }
+        Err(e) => {
+            error!("Failed to store auth token in credential storage: {}", e);
+            HttpResponse::BadRequest()
         }
     }
+}
+
+fn redirect_matches(expected: String, actual: String) -> bool {
+    if let Ok(expected_uri) = expected.parse::<Uri>() {
+        if let Ok(actual_uri) = actual.parse::<Uri>() {
+            return expected_uri.scheme() == actual_uri.scheme()
+                && expected_uri.host() == actual_uri.host()
+                && expected_uri.port_u16() == actual_uri.port_u16();
+        }
+    }
+
+    false
 }
 
 fn login_server(state: Arc<AppState>) -> Result<(Server, u16)> {
@@ -95,7 +114,7 @@ fn login_server(state: Arc<AppState>) -> Result<(Server, u16)> {
     Ok((server, port))
 }
 
-fn launch_login_server(state: AppState) -> Result<u16> {
+pub fn launch_login_server(state: AppState) -> Result<u16> {
     let handle = state.server_handle.clone();
     let (server, port) = login_server(Arc::new(state))?;
 
@@ -116,44 +135,8 @@ fn stop_login_server(state: Data<Arc<AppState>>) {
     rt::spawn(async move {
         tokio::time::sleep(Duration::from_millis(100)).await;
         let handle = state.server_handle.lock().unwrap().take().unwrap();
-        handle.stop(true).await;
+        handle.stop(false).await;
     });
-}
-
-pub fn auth_via_browser() -> Result<String> {
-    let url = std::env::var(LOGIN_URL_ENV).unwrap_or_else(|_| LOGIN_URL.to_string());
-
-    let state = AppState::default();
-    let user = &state.credential_user;
-    let original_state = &state.original_state;
-    let port = launch_login_server(state.clone())?;
-    let local_url = format!("http://localhost:{}", port);
-    info!("Auth login server started on port {}", local_url);
-
-    eprintln!(
-        "Launching {} in your browser. Once you've logged in, come back to the terminal.",
-        style("http://qlty.sh/login").bold().green()
-    );
-    thread::sleep(Duration::from_millis(500));
-
-    let open_url = ureq::get(&url)
-        .query("state", original_state)
-        .query("response_type", "token")
-        .query("redirect_uri", &local_url)
-        .request_url()?
-        .as_url()
-        .to_string();
-    info!("Opening browser to {}", open_url);
-    webbrowser::open(&open_url)?;
-
-    let token = Token::new(user);
-    loop {
-        if let Result::Ok(value) = token.get() {
-            eprintln!("Login successful! Your credentials have been stored for future use.");
-            return Ok(value);
-        }
-        thread::sleep(Duration::from_secs(1));
-    }
 }
 
 #[cfg(test)]
@@ -169,6 +152,7 @@ mod tests {
             let mut state = AppState::default();
             state.original_state = original_state.to_string();
             state.credential_user = "qlty-cli-test".to_string();
+            state.login_url = "https://example.com".to_string();
             state
         }
     }
@@ -177,12 +161,15 @@ mod tests {
     async fn test_auth_flow_get() {
         let state = Arc::new(AppState::test("123"));
         let req = TestRequest::default()
-            .uri("/?state=123&code=ABCDEFG&redirect_uri=https://example.com")
+            .uri("/?state=123&code=ABCDEFG&redirect_uri=https://example.com/complete")
             .to_request();
         let app = init_service(App::new().app_data(Data::new(state)).service(auth_flow)).await;
         let resp = test::call_service(&app, req).await;
         assert_eq!(resp.status(), 307);
-        assert_eq!(resp.headers().get(LOCATION).unwrap(), "https://example.com");
+        assert_eq!(
+            resp.headers().get(LOCATION).unwrap(),
+            "https://example.com/complete"
+        );
     }
 
     #[actix_web::test]
@@ -200,7 +187,18 @@ mod tests {
     async fn test_auth_flow_no_redirect_uri() {
         let state = Arc::new(AppState::test("123"));
         let req = TestRequest::default()
-            .uri("/?code=ABCDEFG&redirect_uri=https://example.com")
+            .uri("/?state=456&code=ABCDEFG")
+            .to_request();
+        let app = init_service(App::new().app_data(Data::new(state)).service(auth_flow)).await;
+        let resp = test::call_service(&app, req).await;
+        assert_eq!(resp.status(), 400);
+    }
+
+    #[actix_web::test]
+    async fn test_auth_flow_invalid_redirect_uri() {
+        let state = Arc::new(AppState::test("123"));
+        let req = TestRequest::default()
+            .uri("/?state=456&code=ABCDEFG&redirect_uri=http://example.com")
             .to_request();
         let app = init_service(App::new().app_data(Data::new(state)).service(auth_flow)).await;
         let resp = test::call_service(&app, req).await;
@@ -230,5 +228,29 @@ mod tests {
 
         let token = Token::new("qlty-cli-test").get().unwrap();
         assert_eq!(token, "ABCDEFG");
+    }
+
+    #[test]
+    fn test_redirect_matches() {
+        assert!(redirect_matches(
+            "https://example.com".to_string(),
+            "https://example.com".to_string()
+        ));
+        assert!(redirect_matches(
+            "https://example.com/a".to_string(),
+            "https://example.com/b".to_string()
+        ));
+        assert!(!redirect_matches(
+            "https://example.com".to_string(),
+            "http://example.com".to_string()
+        ));
+        assert!(!redirect_matches(
+            "https://example.com".to_string(),
+            "https://example.com:8080".to_string()
+        ));
+        assert!(!redirect_matches(
+            "https://example.com".to_string(),
+            "https://not-example.com".to_string()
+        ));
     }
 }
