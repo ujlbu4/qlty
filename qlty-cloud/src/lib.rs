@@ -1,10 +1,10 @@
+mod auth;
 pub mod export;
 pub mod format;
-mod token;
 
 use anyhow::Result;
+pub use auth::{clear_auth_token, load_or_retrieve_auth_token};
 use qlty_config::version::QLTY_VERSION;
-pub use token::{clear_auth_token, load_or_retrieve_auth_token};
 use ureq::Request;
 
 const QLTY_API_URL: &str = "https://api.qlty.sh";

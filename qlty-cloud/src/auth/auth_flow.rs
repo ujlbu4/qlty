@@ -1,4 +1,4 @@
-use crate::token::{token::DEFAULT_USER, token::SERVICE, Token};
+use crate::auth::{token::DEFAULT_USER, token::SERVICE, Token};
 use actix_web::{
     dev::{Server, ServerHandle},
     get,
