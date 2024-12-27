@@ -1,18 +1,17 @@
 use crate::auth::{token::DEFAULT_USER, Token};
 use anyhow::{anyhow, bail, Context, Result};
-use http::{response, Uri};
+use http::Uri;
 use serde::Deserialize;
 use serde_querystring::ParseMode;
 use std::{
     fmt::Display,
-    io::{Empty, Read},
     sync::{
         mpsc::{self, Receiver, Sender},
         Arc, RwLock,
     },
     thread::spawn,
 };
-use tiny_http::{Header, HeaderField, Request, Response, Server};
+use tiny_http::{Header, Request, Response, ResponseBox, Server};
 use tracing::error;
 use uuid::Uuid;
 
@@ -77,7 +76,7 @@ fn redirect_matches(expected: String, actual: String) -> bool {
     false
 }
 
-fn run_handler(request: &Request, state: &AppState) -> Result<Response<Empty>> {
+fn run_handler(request: &Request, state: &AppState) -> Result<ResponseBox> {
     let uri = request.url().parse::<Uri>()?;
     let params: AuthFlowQueryParams;
     if let Some(query) = uri.query() {
@@ -103,7 +102,7 @@ fn run_handler(request: &Request, state: &AppState) -> Result<Response<Empty>> {
     let redirect = format!("Location: {}", params.redirect_uri)
         .parse::<Header>()
         .map_err(|_| anyhow!("Failed to generate redirect"))?;
-    Ok(Response::empty(307).with_header(redirect))
+    Ok(Response::empty(307).with_header(redirect).boxed())
 }
 
 pub fn launch_login_server(state: AppState) -> Result<ServerResponse> {
@@ -163,9 +162,9 @@ pub fn launch_login_server(state: AppState) -> Result<ServerResponse> {
 
 #[cfg(test)]
 mod tests {
-    use std::{thread, time::Duration};
-
     use super::*;
+    use keyring::{mock, set_default_credential_builder};
+    use std::{thread, time::Duration};
 
     impl AppState {
         fn test(original_state: &str) -> Self {
@@ -179,6 +178,7 @@ mod tests {
 
     #[test]
     fn test_auth_flow_get() {
+        set_default_credential_builder(mock::default_credential_builder());
         let state = AppState::test("123");
         let server = launch_login_server(state).unwrap();
         let resp = ureq::get(&server.base_url)
@@ -231,15 +231,22 @@ mod tests {
 
     #[test]
     fn test_auth_flow_server() {
+        set_default_credential_builder(mock::default_credential_builder());
         let state = AppState::test("123");
         let server = launch_login_server(state).unwrap();
 
-        ureq::get(&server.base_url)
+        let response = ureq::get(&server.base_url)
             .query("state", "123")
             .query("code", "ABCDEFG")
-            .query("redirect_uri", "https://example.com")
+            .query("redirect_uri", "https://example.com/?complete")
             .call()
             .unwrap();
+
+        assert_eq!(response.status(), 307);
+        assert_eq!(
+            response.header("Location").unwrap(),
+            "https://example.com/?complete"
+        );
 
         thread::sleep(Duration::from_millis(100));
 
