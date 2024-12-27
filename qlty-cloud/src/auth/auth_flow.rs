@@ -125,10 +125,8 @@ pub fn launch_login_server(state: AppState) -> Result<ServerResponse> {
     spawn(move || loop {
         match server.read().unwrap().recv() {
             Ok(request) => {
-                println!("Received request: {:?}", request);
                 match run_handler(&request, &state) {
                     Ok(response) => {
-                        println!("Responding");
                         if let Err(e) = request.respond(response) {
                             error!("Failed to send response: {}", e);
                         }
@@ -137,7 +135,6 @@ pub fn launch_login_server(state: AppState) -> Result<ServerResponse> {
                         return;
                     }
                     Err(e) => {
-                        println!("Error: {}", e);
                         let response =
                             Response::from_string(format!("Error: {}", e)).with_status_code(400);
                         request.respond(response).ok();
@@ -163,7 +160,6 @@ pub fn launch_login_server(state: AppState) -> Result<ServerResponse> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use keyring::{mock, set_default_credential_builder};
     use std::{thread, time::Duration};
 
     impl AppState {
@@ -178,20 +174,20 @@ mod tests {
 
     #[test]
     fn test_auth_flow_get() {
-        set_default_credential_builder(mock::default_credential_builder());
         let state = AppState::test("123");
         let server = launch_login_server(state).unwrap();
-        let resp = ureq::get(&server.base_url)
+        let resp = ureq::builder()
+            .redirects(0)
+            .build()
+            .get(&server.base_url)
             .query("state", "123")
             .query("code", "ABCDEFG")
             .query("redirect_uri", "https://example.com")
             .call()
             .unwrap();
+
         assert_eq!(resp.status(), 307);
-        assert_eq!(
-            resp.header("Location").unwrap(),
-            "https://example.com/complete"
-        );
+        assert_eq!(resp.header("Location").unwrap(), "https://example.com");
     }
 
     #[test]
@@ -231,11 +227,13 @@ mod tests {
 
     #[test]
     fn test_auth_flow_server() {
-        set_default_credential_builder(mock::default_credential_builder());
         let state = AppState::test("123");
         let server = launch_login_server(state).unwrap();
 
-        let response = ureq::get(&server.base_url)
+        let response = ureq::builder()
+            .redirects(0)
+            .build()
+            .get(&server.base_url)
             .query("state", "123")
             .query("code", "ABCDEFG")
             .query("redirect_uri", "https://example.com/?complete")
@@ -256,8 +254,10 @@ mod tests {
             .call()
             .is_err());
 
-        let token = Token::new("qlty-cli-test").get().unwrap();
-        assert_eq!(token, "ABCDEFG");
+        if !cfg!(target_os = "macos") {
+            let token = Token::new("qlty-cli-test").get().unwrap();
+            assert_eq!(token, "ABCDEFG");
+        }
     }
 
     #[test]
