@@ -1,9 +1,10 @@
 class BooleanLogic {
-    int foo;
+    int zee;
+    // bug: this field is not counted in metrics because it has the same name as a field in BooleanLogic1
     int bar;
 
     void f0() {
-        var x = foo - bar + 1;
+        var x = zee - bar + 1;
     }
 }
 
