@@ -213,10 +213,10 @@ impl Builder {
                     .get(name)
                     .ok_or(anyhow!("Plugin definition not found for name: {}", name))?;
 
-                let latest_version = plugin_definition
-                    .latest_version
-                    .as_ref()
-                    .ok_or(anyhow!("Latest version not found for plugin: {}", name))?;
+                let latest_version = plugin_definition.latest_version.as_ref().ok_or(anyhow!(
+                    "No version specified in enabled plugin or plugin definition: {}",
+                    name
+                ))?;
 
                 enabled_plugin.version = latest_version.clone();
             } else if enabled_plugin.version == "known_good" {
