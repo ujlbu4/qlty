@@ -32,6 +32,9 @@ exclude_patterns = [
 [file_types.ALL]
 globs = ["*.*"]
 
+[file_types.csharp]
+globs = ["*.cs"]
+
 [file_types.css]
 globs = ["*.css"]
 
@@ -432,6 +435,9 @@ smells.duplication.filter_patterns = ["(import_statement _)"]
 
 [language.tsx]
 globs = ["*.tsx", "*.mtsx", "*.ctsx"]
+
+[language.csharp]
+globs = ["*.cs"]
 
 [smells.boolean_logic]
 threshold = 4
