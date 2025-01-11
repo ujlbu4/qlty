@@ -1,8 +1,8 @@
-# Functional Source License, Version 1.1, GPL Future License
+# Qlty Source License, Version 1.1, GPL Future License
 
 ## Abbreviation
 
-FSL-1.1-GPL
+QSL-1.1-GPL
 
 ## Notice
 
