@@ -1,7 +1,8 @@
 use anyhow::Result;
 use globset::{Glob, GlobSet, GlobSetBuilder};
+use qlty_config::Workspace;
 use qlty_types::tests::v1::{CoverageMetadata, CoverageSummary, FileCoverage};
-use std::{env::current_dir, fmt::Debug, path::PathBuf};
+use std::{fmt::Debug, path::PathBuf};
 
 pub trait Transformer: Debug + Send + Sync + 'static {
     fn transform(&self, file_coverage: FileCoverage) -> Option<FileCoverage>;
@@ -151,19 +152,17 @@ pub struct StripPrefix {
     prefix: PathBuf,
 }
 
-impl Default for StripPrefix {
-    fn default() -> Self {
-        Self {
-            prefix: current_dir().unwrap_or_else(|_| PathBuf::from(".")),
-        }
-    }
-}
-
 impl StripPrefix {
     pub fn new(prefix: String) -> Self {
         Self {
             prefix: PathBuf::from(prefix),
         }
+    }
+
+    pub fn new_from_git_root() -> Result<Self> {
+        Ok(Self {
+            prefix: Workspace::assert_within_git_directory()?,
+        })
     }
 }
 
