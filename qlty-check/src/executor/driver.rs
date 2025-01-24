@@ -505,8 +505,7 @@ impl Driver {
             .dir(dir)
             .full_env(plan.tool.env())
             .stderr_capture()
-            .stdout_capture()
-            .unchecked();
+            .stdout_capture();
 
         debug!("Running prepare_script: {}", &rerun);
         let timer = Instant::now();
@@ -521,11 +520,12 @@ impl Driver {
         let duration = timer.elapsed().as_secs_f64();
 
         info!(
-            "{}: Completed {} in {:.3}s (exit {})",
+            "{}: prepare_script ran {} in {:.3}s (exit {}): {}",
             plan.invocation_id,
             invocation_label,
             duration,
-            output.status.code().unwrap_or(-1)
+            output.status.code().unwrap_or(-1),
+            String::from_utf8(output.stdout).unwrap_or_default()
         );
 
         Ok(())
