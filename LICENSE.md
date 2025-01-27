@@ -10,9 +10,11 @@ The Licensed Work is (c) 2025 Qlty Software Inc.
 
 ### Additional Use Grant
 
-You may make use of the Licensed Work, provided that you do not use the Licensed Work for a Code Quality Service.
+You may make use of the Licensed Work, provided that you do not use the Licensed Work for a Code Quality Service or to produce (by integration, ingestion, analysis, training, or otherwise) an Artificial Intelligence Coding Service.
 
 A "Code Quality Service" is a commercial offering that allows third parties (other than your employees and contractors) to access the functionality of the Licensed Work so that such third parties directly benefit from the code quality or code coverage features of the Licensed Work.
+
+A "Artificial Intelligence Coding Service" is a commercial offering that allows third parties (other than your employees and contractors) to generate, edit, or review software code using machine learning or large language model technology.
 
 Change Date: 2028-01-22
 
