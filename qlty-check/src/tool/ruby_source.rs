@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::PathBuf};
+use std::{collections::HashMap, path::Path};
 
 use super::{
     command_builder::default_command_builder, download::Download, ruby::RubygemsPackage,
@@ -128,7 +128,7 @@ impl RuntimeTool for RubySource {
         &self,
         name: &str,
         plugin: &PluginDef,
-        _workspace_root: &PathBuf,
+        _workspace_root: &Path,
     ) -> Box<dyn Tool> {
         Box::new(RubygemsPackage {
             name: name.to_owned(),

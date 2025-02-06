@@ -651,12 +651,7 @@ impl Clone for Box<dyn Tool> {
 }
 
 pub trait RuntimeTool: Tool {
-    fn package_tool(
-        &self,
-        name: &str,
-        plugin: &PluginDef,
-        workspace_root: &PathBuf,
-    ) -> Box<dyn Tool>;
+    fn package_tool(&self, name: &str, plugin: &PluginDef, workspace_root: &Path) -> Box<dyn Tool>;
 }
 
 #[cfg(test)]

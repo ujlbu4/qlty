@@ -15,7 +15,6 @@ use qlty_config::config::{Cpu, DownloadDef, System};
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::path::Path;
-use std::path::PathBuf;
 
 #[cfg(unix)]
 const NPM_COMMAND: &str = "npm";
@@ -114,7 +113,7 @@ impl RuntimeTool for NodeJS {
         &self,
         name: &str,
         plugin: &PluginDef,
-        _workspace_root: &PathBuf,
+        _workspace_root: &Path,
     ) -> Box<dyn Tool> {
         Box::new(NodePackage {
             name: name.to_owned(),

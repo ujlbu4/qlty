@@ -16,7 +16,7 @@ use sha2::Digest;
 use std::collections::HashMap;
 use std::env::split_paths;
 use std::fmt::Debug;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tracing::debug;
 
 #[derive(Debug, Clone)]
@@ -84,18 +84,13 @@ impl Php {
 }
 
 impl RuntimeTool for Php {
-    fn package_tool(
-        &self,
-        name: &str,
-        plugin: &PluginDef,
-        workspace_root: &PathBuf,
-    ) -> Box<dyn Tool> {
+    fn package_tool(&self, name: &str, plugin: &PluginDef, workspace_root: &Path) -> Box<dyn Tool> {
         Box::new(PhpPackage {
             name: name.to_owned(),
             plugin: plugin.clone(),
             runtime: self.clone(),
             cmd: default_command_builder(),
-            workspace_root: workspace_root.clone(),
+            workspace_root: workspace_root.to_owned(),
         })
     }
 }

@@ -12,7 +12,7 @@ use qlty_config::config::PluginDef;
 use qlty_config::config::{Cpu, DownloadDef, System};
 use sha2::Digest;
 use std::fmt::Debug;
-use std::path::PathBuf;
+use std::path::Path;
 
 #[derive(Debug, Clone)]
 pub struct Java {
@@ -110,7 +110,7 @@ impl RuntimeTool for Java {
         &self,
         name: &str,
         plugin: &PluginDef,
-        _workspace_root: &PathBuf,
+        _workspace_root: &Path,
     ) -> Box<dyn Tool> {
         Box::new(JavaPackage {
             name: name.to_owned(),

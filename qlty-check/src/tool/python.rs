@@ -12,7 +12,7 @@ use qlty_config::config::OperatingSystem;
 use qlty_config::config::{Cpu, DownloadDef, PluginDef, System};
 use std::collections::HashMap;
 use std::fmt::Debug;
-use std::path::PathBuf;
+use std::path::Path;
 
 #[cfg(unix)]
 const PYTHON_COMMAND: &str = "python3";
@@ -114,7 +114,7 @@ impl RuntimeTool for Python {
         &self,
         name: &str,
         plugin: &PluginDef,
-        _workspace_root: &PathBuf,
+        _workspace_root: &Path,
     ) -> Box<dyn Tool> {
         Box::new(PipVenvPackage {
             name: name.to_owned(),

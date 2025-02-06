@@ -12,7 +12,7 @@ use qlty_config::config::PluginDef;
 use qlty_config::config::{Cpu, DownloadDef, System};
 use std::collections::HashMap;
 use std::fmt::Debug;
-use std::path::PathBuf;
+use std::path::Path;
 
 #[derive(Debug, Clone)]
 pub struct Go {
@@ -113,7 +113,7 @@ impl RuntimeTool for Go {
         &self,
         name: &str,
         plugin: &PluginDef,
-        _workspace_root: &PathBuf,
+        _workspace_root: &Path,
     ) -> Box<dyn Tool> {
         Box::new(GoPackage {
             name: name.to_owned(),
