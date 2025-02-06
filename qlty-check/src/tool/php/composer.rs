@@ -7,6 +7,7 @@ use itertools::Itertools;
 use qlty_analysis::utils::fs::path_to_native_string;
 use serde_json::Value;
 use sha2::Digest;
+use std::collections::HashMap;
 use std::env::split_paths;
 use std::path::PathBuf;
 use tracing::{debug, info};
@@ -15,6 +16,7 @@ use super::PhpPackage;
 
 #[derive(Debug, Clone)]
 pub struct Composer {
+    pub workspace_root: PathBuf,
     pub cmd: Box<dyn CommandBuilder>,
 }
 
@@ -69,6 +71,15 @@ impl Tool for Composer {
         )
         .map(path_to_native_string)
         .collect_vec()
+    }
+
+    fn extra_env_vars(&self) -> HashMap<String, String> {
+        let mut env = HashMap::new();
+        env.insert(
+            "COMPOSER_VENDOR_DIR".to_string(),
+            path_to_native_string(self.workspace_root.join("vendor")),
+        );
+        env
     }
 }
 
@@ -190,6 +201,7 @@ pub mod test {
             runtime: Php {
                 version: "1.0.0".to_string(),
             },
+            workspace_root: temp_path.path().to_path_buf(),
         };
 
         let composer_file = temp_path.path().join("composer.json");
@@ -246,6 +258,7 @@ pub mod test {
             runtime: Php {
                 version: "1.0.0".to_string(),
             },
+            workspace_root: temp_path.path().to_path_buf(),
         };
 
         let composer_file = temp_path.path().join("composer.json");

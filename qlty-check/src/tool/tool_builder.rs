@@ -3,6 +3,7 @@ use qlty_config::{
     config::{PluginDef, Runtime},
     QltyConfig,
 };
+use std::path::PathBuf;
 
 use crate::Tool;
 
@@ -19,6 +20,7 @@ pub struct ToolBuilder<'a> {
     config: &'a QltyConfig,
     plugin_name: &'a str,
     plugin: &'a PluginDef,
+    workspace_root: &'a PathBuf,
 }
 
 impl ToolBuilder<'_> {
@@ -26,11 +28,13 @@ impl ToolBuilder<'_> {
         config: &'a QltyConfig,
         plugin_name: &'a str,
         plugin: &'a PluginDef,
+        workspace_root: &'a PathBuf,
     ) -> ToolBuilder<'a> {
         ToolBuilder {
             config,
             plugin_name,
             plugin,
+            workspace_root,
         }
     }
 
@@ -47,7 +51,7 @@ impl ToolBuilder<'_> {
             );
 
         let runtime = Self::runtime_tool(runtime.to_owned(), &runtime_version);
-        let package = runtime.package_tool(self.plugin_name, self.plugin);
+        let package = runtime.package_tool(self.plugin_name, self.plugin, self.workspace_root);
 
         Ok(package)
     }

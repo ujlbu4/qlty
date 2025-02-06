@@ -47,7 +47,7 @@ impl Install {
                     plugin_def.version = Some(plugin.version.clone());
                 }
 
-                let tool = ToolBuilder::new(&config, &plugin.name, &plugin_def)
+                let tool = ToolBuilder::new(&config, &plugin.name, &plugin_def, &workspace.root)
                     .build_tool()
                     .unwrap();
                 tools.push(tool);

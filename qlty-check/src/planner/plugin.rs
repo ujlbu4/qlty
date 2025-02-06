@@ -43,9 +43,14 @@ impl PluginPlanner {
             None => None,
         };
 
-        let tool = ToolBuilder::new(&planner.config, plugin_name, &plugin)
-            .build_tool()
-            .unwrap();
+        let tool = ToolBuilder::new(
+            &planner.config,
+            plugin_name,
+            &plugin,
+            &planner.settings.root,
+        )
+        .build_tool()
+        .unwrap();
 
         let workspace_entry_finder_builder = planner
             .workspace_entry_finder_builder

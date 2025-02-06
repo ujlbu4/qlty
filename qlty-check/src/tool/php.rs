@@ -84,12 +84,18 @@ impl Php {
 }
 
 impl RuntimeTool for Php {
-    fn package_tool(&self, name: &str, plugin: &PluginDef) -> Box<dyn Tool> {
+    fn package_tool(
+        &self,
+        name: &str,
+        plugin: &PluginDef,
+        workspace_root: &PathBuf,
+    ) -> Box<dyn Tool> {
         Box::new(PhpPackage {
             name: name.to_owned(),
             plugin: plugin.clone(),
             runtime: self.clone(),
             cmd: default_command_builder(),
+            workspace_root: workspace_root.clone(),
         })
     }
 }
@@ -99,6 +105,7 @@ pub struct PhpPackage {
     pub name: String,
     pub plugin: PluginDef,
     pub runtime: Php,
+    pub workspace_root: PathBuf,
     cmd: Box<dyn CommandBuilder>,
 }
 
@@ -144,6 +151,7 @@ impl Tool for PhpPackage {
         if self.plugin.package_file.is_some() {
             debug!("installing package file");
             let composer = Composer {
+                workspace_root: self.workspace_root.clone(),
                 cmd: self.cmd.clone(),
             };
             composer.setup(task)?;
@@ -169,7 +177,7 @@ impl Tool for PhpPackage {
         let mut env = HashMap::new();
         env.insert(
             "COMPOSER_VENDOR_DIR".to_string(),
-            path_to_native_string(PathBuf::from(format!("{}/vendor", self.directory()))),
+            path_to_native_string(self.workspace_root.join("vendor")),
         );
         env
     }
@@ -213,6 +221,7 @@ pub mod test {
             runtime: super::Php {
                 version: "1.0.0".to_string(),
             },
+            workspace_root: temp_path.path().to_path_buf(),
         };
         reroute_tools_root(&temp_path, &pkg);
         callback(&mut pkg, &temp_path, &list).unwrap();
@@ -243,6 +252,7 @@ pub mod test {
             reroute_tools_root(&temp_path, pkg);
 
             let composer = Composer {
+                workspace_root: temp_path.path().to_path_buf(),
                 cmd: stub_cmd(list.clone()),
             };
 

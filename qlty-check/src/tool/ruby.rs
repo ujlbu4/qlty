@@ -17,6 +17,7 @@ use std::collections::HashMap;
 use std::env::join_paths;
 use std::fmt::Debug;
 use std::fs::read_dir;
+use std::path::PathBuf;
 use tracing::debug;
 
 #[derive(Debug, Clone)]
@@ -236,7 +237,12 @@ impl Ruby {
 }
 
 impl RuntimeTool for Ruby {
-    fn package_tool(&self, name: &str, plugin: &PluginDef) -> Box<dyn Tool> {
+    fn package_tool(
+        &self,
+        name: &str,
+        plugin: &PluginDef,
+        _workspace_root: &PathBuf,
+    ) -> Box<dyn Tool> {
         Box::new(RubygemsPackage {
             name: name.to_owned(),
             plugin: plugin.clone(),
