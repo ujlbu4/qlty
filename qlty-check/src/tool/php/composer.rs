@@ -14,6 +14,19 @@ use tracing::{debug, info};
 
 use super::PhpPackage;
 
+// Contrary to how we usually (node/ruby) install extra packages, php packages are installed differently.
+//
+// If a php plugin uses a package_file, composer is installed first and then the package is installed.
+//
+// The extra packages are installed using composer and placed in the workspace_root/vendor directory
+// unlike node/ruby where the packages are installed in the tool directory.
+// This is because php ecosystem expects packages to be installed in the workspace_root/vendor directory.
+//
+// The composer.json file itself is placed in the tool directory and the install is also run there
+// but we use `COMPOSER_VENDOR_DIR` env variable to specify the install path as workspace_root/vendor.
+// This ensures that the packages are installed in the workspace_root/vendor directory and
+// we keep the composer.json and composer.lock files in the tool directory.
+
 #[derive(Debug, Clone)]
 pub struct Composer {
     pub workspace_root: PathBuf,

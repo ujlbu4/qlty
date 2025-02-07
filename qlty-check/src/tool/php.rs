@@ -167,15 +167,6 @@ impl Tool for PhpPackage {
     fn plugin(&self) -> Option<PluginDef> {
         Some(self.plugin.clone())
     }
-
-    fn extra_env_vars(&self) -> HashMap<String, String> {
-        let mut env = HashMap::new();
-        env.insert(
-            "COMPOSER_VENDOR_DIR".to_string(),
-            path_to_native_string(self.workspace_root.join("vendor")),
-        );
-        env
-    }
 }
 
 impl RunnableArchive for PhpPackage {}
@@ -247,7 +238,7 @@ pub mod test {
             reroute_tools_root(&temp_path, pkg);
 
             let composer = Composer {
-                workspace_root: temp_path.path().to_path_buf(),
+                workspace_root: pkg.workspace_root.clone(),
                 cmd: stub_cmd(list.clone()),
             };
 
