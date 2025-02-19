@@ -10,7 +10,11 @@ use qlty_config::Workspace;
 use qlty_types::analysis::v1::{ExecutionVerb, Issue, Level};
 use std::{collections::HashSet, io::IsTerminal as _, path::PathBuf};
 
-pub fn print_unformatted(writer: &mut dyn std::io::Write, issues: &[Issue]) -> Result<bool> {
+pub fn print_unformatted(
+    writer: &mut dyn std::io::Write,
+    issues: &[Issue],
+    apply_mode: ApplyMode,
+) -> Result<bool> {
     let issues = issues
         .iter()
         .filter(|issue| issue.level() == Level::Fmt)
@@ -55,7 +59,7 @@ pub fn print_unformatted(writer: &mut dyn std::io::Write, issues: &[Issue]) -> R
         writeln!(writer)?;
     }
 
-    if std::io::stdin().is_terminal() && !paths.is_empty() {
+    if apply_mode == ApplyMode::Ask && std::io::stdin().is_terminal() && !paths.is_empty() {
         let mut answered = false;
 
         // Loop until we get a valid answer
