@@ -1,11 +1,12 @@
 use anyhow::{bail, Result};
 use qlty_analysis::utils::fs::path_to_string;
-use qlty_analysis::workspace_entries::TargetMode;
+use qlty_analysis::workspace_entries::{IgnoreGroupsMatcher, TargetMode};
 use qlty_analysis::{
     git::GitDiff, workspace_entries::AndMatcher, FileMatcher, GlobsMatcher, PrefixMatcher,
     WorkspaceEntryFinder, WorkspaceEntryMatcher, WorkspaceEntrySource,
 };
 use qlty_analysis::{AllSource, ArgsSource, DiffSource};
+use qlty_config::config::ignore_group::IgnoreGroup;
 use qlty_config::config::issue_transformer::{IssueTransformer, NullIssueTransformer};
 use qlty_config::config::Ignore;
 use qlty_config::{FileType, Workspace};
@@ -109,16 +110,11 @@ impl PluginWorkspaceEntryFinderBuilder {
             .ignores
             .iter()
             .filter(|i| i.plugins.is_empty() && i.rules.is_empty() && i.levels.is_empty())
-            .collect::<Vec<_>>();
+            .collect();
 
-        let ignores = ignores_without_metadata
-            .iter()
-            .flat_map(|i| i.file_patterns.clone())
-            .collect::<Vec<_>>();
+        let ignore_groups = IgnoreGroup::build_from_ignores(&ignores_without_metadata);
 
-        let ignores = GlobsMatcher::new_for_globs(&ignores, false)?;
-        matchers.push(Box::new(ignores));
-
+        matchers.push(Box::new(IgnoreGroupsMatcher::new(ignore_groups)));
         Ok(Box::new(AndMatcher::new(matchers)))
     }
 
