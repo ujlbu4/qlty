@@ -148,7 +148,7 @@ impl QltyConfig {
             .find(|s| s.name.as_deref() == Some("default"))
     }
 
-    pub fn print_deprecation_warnings(&self) {
+    pub fn print_deprecation_warnings(&self) -> Result<()> {
         match self.default_source() {
             Some(source) => {
                 if source.repository.is_some()
@@ -171,12 +171,15 @@ default = true
 "#,
                         style("⚠").yellow()
                     );
+                    bail!("Please update your qlty.toml to use the new source format.");
                 }
             }
             None => {
                 warn!("No default source defined in qlty.toml.");
             }
         }
+
+        Ok(())
     }
 }
 
