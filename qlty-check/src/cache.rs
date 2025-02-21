@@ -275,15 +275,15 @@ impl IssuesCacheKey {
             cache_busters.insert(path, contents);
         }
 
-        let mut repository_sha: Option<String> = None;
+        let mut repository_tree_sha: Option<String> = None;
         let mut dirty_paths = Vec::new();
         if let Ok(repository) = Workspace::new().and_then(|w| w.repo()) {
-            repository_sha = Self::repository_sha(&repository).ok();
+            repository_tree_sha = Self::repository_sha(&repository).ok();
             dirty_paths = Self::collect_dirty_paths(&repository);
         }
 
         Self {
-            repository_tree_sha: repository_sha,
+            repository_tree_sha,
             dirty_paths,
             digest: InvocationCacheKey {
                 qlty_version: QLTY_VERSION.to_string(),
