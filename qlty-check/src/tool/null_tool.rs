@@ -15,7 +15,7 @@ impl Tool for NullTool {
     }
 
     fn tool_type(&self) -> ToolType {
-        ToolType::Download
+        ToolType::NullTool
     }
 
     fn version(&self) -> Option<String> {
@@ -40,5 +40,9 @@ impl Tool for NullTool {
 
     fn install_and_validate(&self, _: &ProgressTask) -> Result<()> {
         Ok(())
+    }
+
+    fn is_installed(&self) -> bool {
+        true
     }
 }
