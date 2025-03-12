@@ -59,11 +59,11 @@ impl Executor {
     }
 
     pub fn install_and_invoke(&self) -> Result<Results> {
-        let install_messages = self.install()?;
+        let install_result = self.install()?;
         self.run_prepare_scripts()?;
         let mut result = self.invoke()?;
 
-        for message in install_messages {
+        for message in install_result {
             result.messages.push(message);
         }
 
@@ -72,20 +72,22 @@ impl Executor {
 
     pub fn install(&self) -> Result<Vec<Message>> {
         let mut install_messages = vec![];
-        let installation_resullts =
+        let installation_results =
             Self::install_tools(self.plan.tools(), self.plan.jobs, self.progress.clone());
 
-        for result in installation_resullts {
+        for installation_result in installation_results {
+            let (name, result) = installation_result;
             if self.plan.settings.skip_errored_plugins {
                 if let Err(err) = result {
-                    warn!("Error installing tool: {:?}", err);
+                    error!("Error installing tool {}: {:?}", name, err);
 
                     install_messages.push(Message {
                         timestamp: Some(Utc::now().into()),
                         module: "qlty_check::executor".to_string(),
                         ty: "executor.install.error".to_string(),
                         level: MessageLevel::Error.into(),
-                        message: format!("Error installing tool: {:?}", err),
+                        message: format!("Error installing tool {}", name),
+                        details: err.to_string(),
                         ..Default::default()
                     });
                 }
@@ -101,7 +103,7 @@ impl Executor {
         tools: Vec<(String, Box<dyn Tool>)>,
         jobs: usize,
         progress: Progress,
-    ) -> Vec<Result<()>> {
+    ) -> Vec<(String, Result<()>)> {
         let timer = Instant::now();
         let pool = rayon::ThreadPoolBuilder::new()
             .num_threads(jobs)
@@ -114,7 +116,12 @@ impl Executor {
         pool.install(|| {
             install_results = tools
                 .into_par_iter()
-                .map(|(name, tool)| Self::install_tool(name, tool, progress.clone()))
+                .map(|(name, tool)| {
+                    (
+                        name.clone(),
+                        Self::install_tool(name, tool, progress.clone()),
+                    )
+                })
                 .collect::<Vec<_>>();
         });
 

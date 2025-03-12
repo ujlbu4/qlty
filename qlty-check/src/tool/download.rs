@@ -1,23 +1,27 @@
+use super::installations::initialize_installation;
+use super::installations::write_to_file;
 use super::Tool;
 use super::ToolType;
 use crate::ui::{ProgressBar, ProgressTask};
 use anyhow::{anyhow, bail, Result};
+use chrono::Utc;
 use flate2::read::GzDecoder;
 use itertools::Itertools;
 use qlty_analysis::utils::fs::path_to_string;
 use qlty_config::config::PluginDef;
 use qlty_config::config::{Cpu, DownloadDef, DownloadFileType, OperatingSystem};
+use qlty_types::analysis::v1::Installation;
 use sha2::Digest;
 use sha2::Sha256;
+use std::fmt::Debug;
 use std::fs::File;
 use std::io::BufReader;
 use std::io::Cursor;
 use std::path::{Path, PathBuf};
 use tar::Archive;
 use tempfile::tempfile;
-use tracing::info;
-use tracing::trace;
-use tracing::warn;
+use tracing::error;
+use tracing::{info, trace, warn};
 use zip::ZipArchive;
 
 #[cfg(unix)]
@@ -86,17 +90,22 @@ impl Download {
         hasher.update(format!("{:?}", self.file_type()));
     }
 
-    pub fn install(&self, directory: impl AsRef<Path>, tool_name: impl AsRef<str>) -> Result<()> {
-        let directory = directory.as_ref();
-        let tool_name = tool_name.as_ref();
+    pub fn install(&self, tool: &dyn Tool) -> Result<()> {
+        let directory = PathBuf::from(tool.directory());
+        let tool_name = tool.name();
+        let mut installation = initialize_installation(tool);
 
-        match self.file_type() {
-            DownloadFileType::Executable => self.install_executable(directory, tool_name),
-            DownloadFileType::Targz => self.install_targz(directory),
-            DownloadFileType::Tarxz => self.install_tarxz(directory),
-            DownloadFileType::Gz => self.install_gz(directory, tool_name),
-            DownloadFileType::Zip => self.install_zip(directory),
-        }
+        let result = match self.file_type() {
+            DownloadFileType::Executable => self.install_executable(&directory, &tool_name),
+            DownloadFileType::Targz => self.install_targz(&directory),
+            DownloadFileType::Tarxz => self.install_tarxz(&directory),
+            DownloadFileType::Gz => self.install_gz(&directory, &tool_name),
+            DownloadFileType::Zip => self.install_zip(&directory),
+        };
+
+        finalize_installation_from_download_result(self, &mut installation, &result)?;
+
+        result
     }
 
     fn install_executable(&self, directory: &Path, tool_name: &str) -> Result<()> {
@@ -351,7 +360,8 @@ impl Tool for DownloadTool {
 
     fn install(&self, task: &ProgressTask) -> Result<()> {
         task.set_message(&format!("Installing {}", self.name()));
-        self.download.install(self.directory(), self.name())?;
+        self.download.install(self)?;
+
         Ok(())
     }
 
@@ -393,4 +403,27 @@ fn strip_components(path: &Path, n: usize) -> PathBuf {
             acc
         })
         .to_path_buf()
+}
+
+fn finalize_installation_from_download_result(
+    download: &Download,
+    installation: &mut Installation,
+    result: &Result<()>,
+) -> Result<()> {
+    installation.download_url = Some(download.url()?);
+    installation.download_file_type = Some(download.file_type().to_string());
+    installation.download_binary_name = download.binary_name();
+
+    if result.is_ok() {
+        installation.download_success = Some(true);
+    } else {
+        installation.download_success = Some(false);
+    }
+    installation.finished_at = Some(Utc::now().into());
+
+    if let Err(err) = write_to_file(installation) {
+        error!("Error writing debug data: {}", err);
+    }
+
+    Ok(())
 }

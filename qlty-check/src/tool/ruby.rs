@@ -37,7 +37,7 @@ pub trait PlatformRuby {
 
     fn install(&self, tool: &dyn Tool, task: &ProgressTask, download: Download) -> Result<()> {
         task.set_message("Installing Ruby");
-        download.install(tool.directory(), tool.name())
+        download.install(tool)
     }
 
     fn insert_rubylib_env(&self, tool: &dyn Tool, env: &mut HashMap<String, String>) {
