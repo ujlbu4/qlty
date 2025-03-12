@@ -28,8 +28,8 @@ pub struct GitDiff {
 }
 
 impl GitDiff {
-    pub fn compute(mode: DiffMode, path: &Path) -> Result<Self> {
-        let repository = Repository::open(path)?;
+    pub fn compute(mode: DiffMode, repository_root: &Path) -> Result<Self> {
+        let repository = Repository::open(repository_root)?;
         let head_commit = repository.head()?.peel_to_commit()?;
 
         let commit = match mode {
@@ -83,7 +83,7 @@ impl GitDiff {
 
         let line_filter = DiffLineTransformer::new(Self::plus_lines_index(
             &diff,
-            path.parent().unwrap().to_path_buf(),
+            repository_root.to_path_buf(),
         )?);
 
         Ok(Self {
@@ -349,7 +349,7 @@ mod test {
         )
         .unwrap();
 
-        let git_diff = GitDiff::compute(DiffMode::HeadToWorkdir, &repo.path())?;
+        let git_diff = GitDiff::compute(DiffMode::HeadToWorkdir, &repo.path().parent().unwrap())?;
         let paths = git_diff.changed_files;
 
         let expected_paths = [
