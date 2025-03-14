@@ -699,21 +699,11 @@ fn run_invocation(
                 return;
             }
 
-            file_result.issues = file_result
-                .issues
-                .par_iter()
-                .cloned()
-                .filter_map(|mut issue| {
-                    for transformer in transformers {
-                        if let Some(transformed_issue) = transformer.transform(issue) {
-                            issue = transformed_issue;
-                        } else {
-                            return None;
-                        }
-                    }
-                    Some(issue)
-                })
-                .collect();
+            let mut issues = file_result.issues.clone();
+            for transformer in transformers {
+                issues = transformer.transform_batch(issues);
+            }
+            file_result.issues = issues;
         });
     }
 

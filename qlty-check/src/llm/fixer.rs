@@ -2,7 +2,8 @@ use crate::planner::Plan;
 use crate::source_reader::SourceReader;
 use crate::ui::ProgressBar as _;
 use crate::{executor::staging_area::StagingArea, Progress};
-use anyhow::{bail, Result};
+use anyhow::Result;
+use itertools::Itertools;
 use lazy_static::lazy_static;
 use qlty_cloud::Client;
 use qlty_config::issue_transformer::IssueTransformer;
@@ -17,6 +18,7 @@ use ureq::json;
 const MAX_FIXES: usize = 500;
 const MAX_FIXES_PER_FILE: usize = 30;
 const MAX_CONCURRENT_FIXES: usize = 10;
+const MAX_BATCH_SIZE: usize = 15;
 
 lazy_static! {
     static ref API_THREAD_POOL: ThreadPool = ThreadPoolBuilder::new()
@@ -30,20 +32,29 @@ pub struct Fixer {
     progress: Progress,
     staging_area: StagingArea,
     r#unsafe: bool,
-    attempts_per_file: Arc<Mutex<HashMap<Option<String>, AtomicUsize>>>,
+    attempts_per_file: Arc<Mutex<HashMap<String, AtomicUsize>>>,
     total_attempts: Arc<AtomicUsize>,
 }
 
 impl IssueTransformer for Fixer {
-    fn transform(&self, mut issue: Issue) -> Option<Issue> {
-        if !self.reached_max_fixes(&issue) {
-            issue = self
-                .fix_issue(&issue)
-                .inspect(|issue| self.update_max_fixes(issue))
-                .unwrap_or(issue);
-        }
-
-        Some(issue)
+    fn transform_batch(&self, issues: Vec<Issue>) -> Vec<Issue> {
+        issues
+            .iter()
+            .cloned()
+            .into_group_map_by(|issue| issue.path())
+            .iter()
+            .map(|(path, issues)| {
+                if let Some(path) = path {
+                    issues
+                        .chunks(MAX_BATCH_SIZE)
+                        .flat_map(|chunk| self.fix_issue(path, chunk))
+                        .collect_vec()
+                } else {
+                    issues.clone()
+                }
+            })
+            .collect_vec()
+            .concat()
     }
 
     fn clone_box(&self) -> Box<dyn IssueTransformer> {
@@ -62,8 +73,8 @@ impl Fixer {
         }
     }
 
-    fn reached_max_fixes(&self, issue: &Issue) -> bool {
-        if self.total_attempts.load(Ordering::Relaxed) >= MAX_FIXES {
+    fn reached_max_fixes(&self, path: &String, issues: &[Issue]) -> bool {
+        if self.total_attempts.load(Ordering::Relaxed) + issues.len() >= MAX_FIXES {
             debug!(
                 "Skipping all issue due to max attempts of {} reached",
                 MAX_FIXES
@@ -73,12 +84,12 @@ impl Fixer {
 
         let mut attempts_per_file = self.attempts_per_file.lock().unwrap();
         let file_attempts = attempts_per_file
-            .entry(issue.path())
+            .entry(path.clone())
             .or_insert(AtomicUsize::new(0));
         if file_attempts.load(Ordering::Relaxed) >= MAX_FIXES_PER_FILE {
             warn!(
                 "Skipping more issues in file with too many attempts: {}",
-                issue.path().unwrap_or_default()
+                path
             );
             return true;
         }
@@ -86,71 +97,93 @@ impl Fixer {
         false
     }
 
-    fn update_max_fixes(&self, issue: &Issue) {
-        self.total_attempts.fetch_add(1, Ordering::Relaxed);
+    fn update_max_fixes(&self, path: &String, issues: &[Issue]) {
+        self.total_attempts
+            .fetch_add(issues.len(), Ordering::Relaxed);
         self.attempts_per_file
             .lock()
             .unwrap()
-            .get(&issue.path())
-            .map(|a| a.fetch_add(1, Ordering::Relaxed));
+            .get(path)
+            .map(|a| a.fetch_add(issues.len(), Ordering::Relaxed));
     }
 
-    fn fix_issue(&self, issue: &Issue) -> Option<Issue> {
-        let task = self.progress.task("Generating AI Fix:", "");
+    fn fix_issue(&self, path: &String, issues: &[Issue]) -> Vec<Issue> {
+        if self.reached_max_fixes(path, issues) {
+            return issues.to_vec();
+        }
 
-        let trimmed_message = if issue.message.len() > 80 {
-            format!("{}...", &issue.message[..80])
-        } else {
-            issue.message.clone()
-        };
-        task.set_dim_message(&trimmed_message);
+        let tasks = issues
+            .iter()
+            .map(|issue| {
+                let task = self.progress.task("Generating AI Fix:", "");
 
-        match self.try_fix(issue) {
-            Ok(issue) => {
-                if issue.suggestions.is_empty() {
-                    debug!(
-                        "No AI fix generated for issue: {}:{}",
-                        &issue.tool, &issue.rule_key
-                    );
+                let trimmed_message = if issue.message.len() > 80 {
+                    format!("{}...", &issue.message[..80])
                 } else {
-                    info!("Generated AI autofix for issue: {:?}", &issue.suggestions);
-                    return Some(issue);
+                    issue.message.clone()
+                };
+                task.set_dim_message(&trimmed_message);
+                task
+            })
+            .collect_vec();
+
+        let issues = match self.try_fix(path, issues) {
+            Ok(issues) => {
+                self.update_max_fixes(path, &issues);
+                for issue in issues.iter() {
+                    if issue.suggestions.is_empty() {
+                        debug!(
+                            "No AI fix generated for issue: {}:{}",
+                            &issue.tool, &issue.rule_key
+                        );
+                    } else {
+                        info!("Generated AI autofix for issue: {:?}", &issue.suggestions);
+                    }
                 }
+                issues
             }
             Err(error) => {
                 warn!("Failed to generate AI autofix: {:?}", error);
+                issues.to_vec()
             }
         };
 
-        self.progress.increment(1);
-        task.clear();
-        None
+        self.progress.increment(issues.len() as u64);
+        tasks.iter().for_each(|task| task.clear());
+        issues
     }
 
-    fn try_fix(&self, issue: &Issue) -> Result<Issue> {
-        if let Some(path) = issue.path() {
-            let client = Client::authenticated()?;
-            let content = self.staging_area.read(issue.path().unwrap().into())?;
-            let response = API_THREAD_POOL.scope(|_| {
-                client.post("/fixes").send_json(json!({
-                    "issue": issue.clone(),
-                    "files": [{ "content": content, "path": path }],
-                    "options": {
-                        "unsafe": self.r#unsafe
-                    },
-                }))
-            })?;
+    fn try_fix(&self, path: &String, issues: &[Issue]) -> Result<Vec<Issue>> {
+        let client = Client::authenticated()?;
+        let content = self.staging_area.read(path.clone().into())?;
+        let response = API_THREAD_POOL.scope(|_| {
+            client.post("/fixes/batch").send_json(json!({
+                "issues": issues,
+                "files": [{ "path": path, "content": content }],
+                "options": {
+                    "unsafe": self.r#unsafe
+                },
+            }))
+        })?;
+        debug!(
+            "Response [/fixes/batch] (N={}): {:?}",
+            issues.len(),
+            &response
+        );
 
-            let response_debug = format!("{:?}", &response);
-            let suggestions: Vec<Suggestion> = response.into_json()?;
-            debug!("{} with {} suggestions", response_debug, suggestions.len());
+        let suggestion_groups: Vec<Vec<Suggestion>> = response.into_json()?;
+        debug!("Suggestions: {:?}", suggestion_groups);
 
-            let mut issue = issue.clone();
-            issue.suggestions = suggestions.clone();
+        let issues = issues
+            .iter()
+            .zip(suggestion_groups)
+            .map(|(issue, suggestions)| {
+                let mut issue = issue.clone();
+                issue.suggestions = suggestions;
+                issue
+            })
+            .collect_vec();
 
-            Ok(issue)
-        } else {
-            bail!("Issue {} has no path", issue.id);
-        }
+        Ok(issues)
     }
 }
