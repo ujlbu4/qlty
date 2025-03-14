@@ -2554,6 +2554,7 @@ dependencies = [
  "md5",
  "qlty-plugins",
  "qlty-types",
+ "rayon",
  "schemars",
  "semver",
  "serde",
