@@ -287,10 +287,9 @@ pub mod test {
                             temp_path.path().display(),
                             composer.directory_name()
                         )),
-                        "install",
+                        "update",
                         "--no-interaction",
-                        "--ignore-platform-reqs",
-                        "--no-plugins"
+                        "--ignore-platform-reqs"
                     ]
                 ]
             );
