@@ -28,6 +28,11 @@
 
 - Unit tests live below implementation `#[cfg(test)]` blocks
 - Integration tests live in `tests/` in each crate
+- Test one thing per test
+- Do not add comments to tests
+- Do not use custom assertion messages
+- Do not use control flow like if statements or loops in tests
+- `.unwrap()` is OK to use in tests
 
 ## Development Workflow
 
