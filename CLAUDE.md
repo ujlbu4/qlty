@@ -2,7 +2,7 @@
 
 ## Build & Test Commands
 
-- Check that the code compiles (faster than build): `cargo check`
+- Typecheck (faster than build): `cargo check`
 - Build: `cargo build`
 - Run auto-formatter: `qlty fmt`
 - Run linter: `qlty check --fix --no-formatters`
@@ -20,6 +20,17 @@
 - Always use strong typing with enums for bounded sets of values
 - Imports: group std first, then external crates, then internal modules
 - Comprehensive error handling with proper context using `context()` or `with_context()`
-- Tests live alongside implementation in `tests/` module or `#[cfg(test)]` blocks
+
 - Use descriptive variable names that clearly express intent
 - Write docstrings for public APIs and complex functions
+
+## Testing
+
+- Unit tests live below implementation `#[cfg(test)]` blocks
+- Integration tests live in `tests/` in each crate
+
+## Development Workflow
+
+- Start chnages on a new branch which is branched from `main` with a descriptive name
+- Before committing, format the code, typecheck, lint, and run tests
+- In the commit message, include the EXACT instructions from me the user
