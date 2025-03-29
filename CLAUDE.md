@@ -39,3 +39,4 @@
 - Start chnages on a new branch which is branched from `main` with a descriptive name
 - Before committing, format the code, typecheck, lint, and run tests
 - In the commit message, include the EXACT instructions from me the user
+- Always open PRs in draft mode
