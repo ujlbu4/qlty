@@ -22,7 +22,6 @@ use qlty_config::{QltyConfig, Workspace};
 use qlty_types::analysis::v1::ExecutionVerb;
 use rayon::prelude::*;
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
 use std::time::Instant;
 use tracing::{debug, info};
 
@@ -62,7 +61,7 @@ pub struct Planner {
     staging_area: StagingArea,
     issue_cache: IssueCache,
     target_mode: Option<TargetMode>,
-    workspace_entry_finder_builder: Option<Arc<Mutex<PluginWorkspaceEntryFinderBuilder>>>,
+    workspace_entry_finder_builder: Option<PluginWorkspaceEntryFinderBuilder>,
     cache_hits: Vec<IssuesCacheHit>,
     active_plugins: Vec<ActivePlugin>,
     plugin_configs: HashMap<String, Vec<PluginConfigFile>>,
@@ -134,15 +133,18 @@ impl Planner {
     fn compute_workspace_entries_strategy(&mut self) -> Result<()> {
         self.target_mode = Some(self.compute_target_mode());
 
-        self.workspace_entry_finder_builder =
-            Some(Arc::new(Mutex::new(PluginWorkspaceEntryFinderBuilder {
-                mode: self.target_mode.as_ref().unwrap().clone(),
-                root: self.settings.root.clone(),
-                paths: self.settings.paths.clone(),
-                file_types: self.config.file_types.clone(),
-                ignores: self.config.ignore.clone(),
-                ..Default::default()
-            })));
+        let mut builder = PluginWorkspaceEntryFinderBuilder {
+            mode: self.target_mode.as_ref().unwrap().clone(),
+            root: self.settings.root.clone(),
+            paths: self.settings.paths.clone(),
+            file_types: self.config.file_types.clone(),
+            ignores: self.config.ignore.clone(),
+            ..Default::default()
+        };
+
+        builder.compute()?;
+
+        self.workspace_entry_finder_builder = Some(builder);
 
         Ok(())
     }
@@ -221,27 +223,13 @@ impl Planner {
     }
 
     fn compute_transformers(&mut self) {
-        let workspace_entry_finder_builder = match self.workspace_entry_finder_builder.as_mut() {
-            Some(builder) => builder,
-            None => {
-                debug!("No workspace entry finder builder available for transformers");
-                return;
-            }
-        };
-
-        let result = workspace_entry_finder_builder
+        if let Ok(diff_line_filter) = self
+            .workspace_entry_finder_builder
+            .as_mut()
+            .unwrap()
             .clone()
-            .lock()
-            .map_err(|_| {
-                debug!("Failed to lock workspace entry finder builder");
-            })
-            .and_then(|mut builder| {
-                builder.diff_line_filter().map_err(|_| {
-                    debug!("Failed to get diff line filter");
-                })
-            });
-
-        if let Ok(diff_line_filter) = result {
+            .diff_line_filter()
+        {
             self.transformers.push(diff_line_filter);
 
             if !self.settings.emit_existing_issues {
