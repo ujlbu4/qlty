@@ -1,3 +1,4 @@
+use crate::export::AnalysisExport;
 use crate::{Arguments, CommandError, CommandSuccess};
 use anyhow::Result;
 use clap::Args;
@@ -9,7 +10,6 @@ use qlty_analysis::{
     workspace_entries::{TargetMode, WorkspaceEntryFinderBuilder},
     Report,
 };
-use qlty_cloud::export::AnalysisExport;
 use qlty_config::{QltyConfig, Workspace};
 use qlty_types::analysis::v1::{AnalysisResult, ExecutionVerb, Metadata};
 use rayon::prelude::*;
@@ -262,7 +262,7 @@ impl Build {
     }
 
     fn build_check_settings(&self) -> Result<qlty_check::Settings> {
-        Ok(qlty_check::Settings {
+        let mut settings = qlty_check::Settings {
             root: Workspace::assert_within_git_directory()?,
             all: self.upstream.is_none(),
             progress: false,
@@ -274,7 +274,20 @@ impl Build {
             skip_errored_plugins: self.skip_errored_plugins,
             emit_existing_issues: true,
             ..Default::default()
-        })
+        };
+
+        // Get auth token if AI is enabled
+        if settings.ai {
+            settings.auth_token = match crate::auth::load_or_retrieve_auth_token() {
+                Ok(token) => Some(token),
+                Err(err) => {
+                    warn!("Failed to get auth token: {}", err);
+                    None
+                }
+            };
+        }
+
+        Ok(settings)
     }
 
     fn target_mode(&self) -> TargetMode {

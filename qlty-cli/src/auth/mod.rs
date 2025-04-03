@@ -1,7 +1,6 @@
 mod auth_flow;
 mod credentials;
 
-use crate::Client;
 use anyhow::Result;
 use auth_flow::{launch_login_server, AppState};
 use console::style;
@@ -44,14 +43,12 @@ pub fn load_or_retrieve_auth_token() -> Result<String> {
 }
 
 fn validate_auth_token(auth_token: &String) -> Result<()> {
-    Client::new(None, Some(auth_token.into()))
-        .get("/user")
-        .call()
-        .inspect_err(|_| {
-            if let Err(err) = clear_auth_token() {
-                warn!("Failed to clear auth token: {}", err);
-            }
-        })?;
+    let client = qlty_cloud::Client::new(None, Some(auth_token.into()));
+    client.get("/user").call().inspect_err(|_| {
+        if let Err(err) = clear_auth_token() {
+            warn!("Failed to clear auth token: {}", err);
+        }
+    })?;
 
     Ok(())
 }

@@ -1,11 +1,12 @@
 use anyhow::{anyhow, Context, Result};
+use std::path::Path;
 
-mod copy;
-mod gz;
-mod json;
-mod json_each;
-mod json_each_truncated;
-mod protos;
+pub mod copy;
+pub mod gz;
+pub mod json;
+pub mod json_each;
+pub mod json_each_truncated;
+pub mod protos;
 
 pub use copy::CopyFormatter;
 pub use gz::GzFormatter;
@@ -17,7 +18,7 @@ pub use protos::{ProtoFormatter, ProtosFormatter};
 pub trait Formatter {
     fn write_to(&self, writer: &mut dyn std::io::Write) -> Result<()>;
 
-    fn write_to_file(&self, path: &std::path::Path) -> Result<()> {
+    fn write_to_file(&self, path: &Path) -> Result<()> {
         let directory = path
             .parent()
             .ok_or_else(|| anyhow!("Failed to get parent directory of file: {:?}", path))?;

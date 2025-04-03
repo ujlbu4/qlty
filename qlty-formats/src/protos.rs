@@ -1,4 +1,5 @@
-use super::Formatter;
+use crate::Formatter;
+use anyhow::Result;
 use prost::{bytes::BytesMut, Message};
 use std::io::Write;
 
@@ -16,10 +17,14 @@ where
     T: IntoIterator + Clone + 'static,
     T::Item: Message,
 {
-    pub fn new(records: T) -> Box<dyn Formatter> {
-        Box::new(Self {
+    pub fn new(records: T) -> Self {
+        Self {
             records: records.clone(),
-        })
+        }
+    }
+
+    pub fn boxed(records: T) -> Box<dyn Formatter> {
+        Box::new(Self::new(records))
     }
 }
 
@@ -28,7 +33,7 @@ where
     T: IntoIterator + Clone,
     T::Item: Message,
 {
-    fn write_to(&self, writer: &mut dyn Write) -> anyhow::Result<()> {
+    fn write_to(&self, writer: &mut dyn Write) -> Result<()> {
         let mut buffer = BytesMut::new();
 
         for record in self.records.clone().into_iter() {
@@ -46,13 +51,17 @@ pub struct ProtoFormatter<T: Message> {
 }
 
 impl<T: Message + 'static> ProtoFormatter<T> {
-    pub fn new(record: T) -> Box<dyn Formatter> {
-        Box::new(Self { record })
+    pub fn new(record: T) -> Self {
+        Self { record }
+    }
+
+    pub fn boxed(record: T) -> Box<dyn Formatter> {
+        Box::new(Self::new(record))
     }
 }
 
 impl<T: Message> Formatter for ProtoFormatter<T> {
-    fn write_to(&self, writer: &mut dyn Write) -> anyhow::Result<()> {
+    fn write_to(&self, writer: &mut dyn Write) -> Result<()> {
         let mut buffer = BytesMut::new();
         self.record.encode(&mut buffer)?;
         writer.write_all(&buffer)?;

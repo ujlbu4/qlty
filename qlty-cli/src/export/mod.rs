@@ -1,8 +1,6 @@
-pub mod analysis;
-pub mod coverage;
+mod analysis;
 
 pub use analysis::AnalysisExport;
-pub use coverage::CoverageExport;
 
 #[derive(Debug, Clone, Copy, Default)]
 pub enum ExportFormat {

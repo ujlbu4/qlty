@@ -17,15 +17,13 @@ doctest = false
 anyhow.workspace = true
 clap.workspace = true
 cli-table.workspace = true
-console.workspace = true
 git2.workspace = true
 globset.workspace = true
-indicatif.workspace = true
-lazy_static.workspace = true
 pbjson-types.workspace = true
 qlty-analysis.workspace = true
 qlty-cloud.workspace = true
 qlty-config.workspace = true
+qlty-formats.workspace = true
 qlty-types.workspace = true
 regex.workspace = true
 semver.workspace = true
@@ -34,6 +32,8 @@ serde-xml-rs.workspace = true
 serde.workspace = true
 time.workspace = true
 ureq.workspace = true
+zip.workspace = true
 
 [dev-dependencies]
 insta.workspace = true
+tempfile.workspace = true

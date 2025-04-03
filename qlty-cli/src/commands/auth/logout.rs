@@ -1,7 +1,7 @@
+use crate::auth::clear_auth_token;
 use crate::{Arguments, CommandError, CommandSuccess};
 use anyhow::Result;
 use clap::Args;
-use qlty_cloud::clear_auth_token;
 
 #[derive(Args, Debug)]
 pub struct Logout {}

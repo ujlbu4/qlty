@@ -1,7 +1,10 @@
 pub mod allocator;
 mod arguments;
+pub mod auth;
 mod commands;
 mod errors;
+pub mod export;
+pub mod format;
 mod initializer;
 mod logging;
 pub mod shell;
@@ -11,6 +14,7 @@ mod ui;
 mod upgrade;
 
 pub use arguments::Arguments;
+pub use auth::{clear_auth_token, load_or_retrieve_auth_token, store_auth_token};
 pub use errors::CommandError;
 pub use initializer::Initializer;
 pub use success::{CommandSuccess, Trigger};

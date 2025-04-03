@@ -1,6 +1,5 @@
-use thiserror::Error;
-
 use crate::CommandSuccess;
+use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum CommandError {

@@ -1,3 +1,4 @@
+use crate::format::SarifFormatter;
 use crate::ui::ApplyMode;
 use crate::ui::ErrorsFormatter;
 use crate::ui::Steps;
@@ -9,9 +10,8 @@ use clap::Args;
 use console::{style, Emoji};
 use qlty_check::planner::Plan;
 use qlty_check::{planner::Planner, CheckFilter, Executor, Processor, Report, Settings};
-use qlty_cloud::format::JsonFormatter;
-use qlty_cloud::load_or_retrieve_auth_token;
 use qlty_config::Workspace;
+use qlty_formats::{Formatter, JsonFormatter};
 use qlty_types::analysis::v1::ExecutionVerb;
 use qlty_types::analysis::v1::Level;
 use std::io::BufRead as _;
@@ -107,8 +107,12 @@ pub struct Check {
     fail_level: Level,
 
     /// JSON output
-    #[arg(long, hide = true)]
+    #[arg(long, hide = true, conflicts_with = "sarif")]
     json: bool,
+
+    /// SARIF output
+    #[arg(long, conflicts_with = "json")]
+    sarif: bool,
 
     /// Allow individual plugins to be skipped if they fail or crash
     #[arg(hide = true, long, conflicts_with = "fail_level")]
@@ -129,10 +133,6 @@ impl Check {
         workspace.fetch_sources()?;
 
         let settings = self.build_settings(&workspace)?;
-        if settings.ai {
-            // load the token early so that we can ask user to login first
-            load_or_retrieve_auth_token()?;
-        }
 
         let mut counter = 0;
         let mut dirty = true;
@@ -303,6 +303,17 @@ impl Check {
         settings.trigger = self.trigger.into();
         settings.skip_errored_plugins = self.skip_errored_plugins;
 
+        // Get auth token if AI is enabled
+        if settings.ai {
+            settings.auth_token = match crate::auth::load_or_retrieve_auth_token() {
+                Ok(token) => Some(token),
+                Err(err) => {
+                    warn!("Failed to get auth token: {}", err);
+                    None
+                }
+            };
+        }
+
         Ok(settings)
     }
 
@@ -349,6 +360,10 @@ impl Check {
     fn write_stdout(&self, report: &Report, plan: &Plan, settings: &Settings) -> Result<bool> {
         if self.json {
             let formatter = JsonFormatter::new(report.issues.clone());
+            formatter.write_to(&mut std::io::stdout())?;
+            Ok(false)
+        } else if self.sarif {
+            let formatter = SarifFormatter::boxed(report.clone());
             formatter.write_to(&mut std::io::stdout())?;
             Ok(false)
         } else {
