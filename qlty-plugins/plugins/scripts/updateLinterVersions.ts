@@ -47,7 +47,7 @@ const getLintersList = async (): Promise<string[]> => {
           const linterPath = path.join(LINTERS_PATH, dirContent);
           const stat = await fs.promises.stat(linterPath);
           if (stat.isDirectory()) {
-            return linterPath;
+            return dirContent;
           }
         })();
       }),
@@ -134,11 +134,6 @@ async function main(): Promise<void> {
         console.log(`Testing ${linterLabel}...`);
         execSync(
           `QLTY_PLUGINS_LINTER_VERSION=${latestLinterVersion} QLTY_PLUGINS_TEST_AGAINST_KNOWN_GOOD_VERSION=true npm test ${linter}.test.ts`,
-          { stdio: "inherit" },
-        );
-
-        execSync(
-          `QLTY_PLUGINS_LINTER_VERSION=${latestLinterVersion} npm test ${linter}.test.ts -- --updateSnapshot`,
           { stdio: "inherit" },
         );
 
