@@ -13,6 +13,9 @@ export interface EnvOptions {
 
   /** Test the output against the known good version output of the linter. */
   testAgainstKnownGoodVersion: boolean;
+
+  /** Test the output against the latest snapshots of the linter. */
+  testAgainstLatestSnapshot: boolean;
 }
 
 const parseLinterVersion = (value: string): LinterVersion | undefined => {
@@ -29,6 +32,9 @@ export const OPTIONS: EnvOptions = {
   sandboxDebug: Boolean(process.env.QLTY_PLUGINS_SANDBOX_DEBUG),
   testAgainstKnownGoodVersion: Boolean(
     process.env.QLTY_PLUGINS_TEST_AGAINST_KNOWN_GOOD_VERSION,
+  ),
+  testAgainstLatestSnapshot: Boolean(
+    process.env.QLTY_PLUGINS_TEST_AGAINST_LATEST_SNAPSHOT,
   ),
 };
 

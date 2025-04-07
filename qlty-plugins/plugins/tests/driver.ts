@@ -7,6 +7,7 @@ import * as git from "simple-git";
 import * as util from "util";
 import { getKnownGoodVersion } from "./runLinterTest";
 import { OPTIONS } from "./utils";
+import semver from 'semver';
 
 interface Issue {
   tool: string;
@@ -160,6 +161,28 @@ export class QltyDriver {
       );
   }
 
+  getLatestSnapshot(prefix: string): string | undefined {
+    const snapshotsDir = path.join(this.fixturesDir, SNAPSHOTS_DIR);
+    const files = fs.readdirSync(snapshotsDir);
+
+    const regex = new RegExp(`^${prefix}_v(\\d+\\.\\d+\\.\\d+)\\.shot$`);
+    let latestVersion: string | undefined;
+    let latestFile: string | undefined;
+
+    for (const file of files) {
+      const match = file.match(regex);
+      if (match) {
+        const version = match[1];
+        if (!latestVersion || semver.gt(version, latestVersion)) {
+          latestVersion = version;
+          latestFile = file;
+        }
+      }
+    }
+
+    return latestFile ? path.join(snapshotsDir, latestFile) : undefined;
+  }
+
   snapshotPath(prefix: string): string {
     if (OPTIONS.testAgainstKnownGoodVersion) {
       const knownGoodVersion = getKnownGoodVersion(
@@ -173,6 +196,16 @@ export class QltyDriver {
       );
 
       return knownGoodSnapshot;
+    }
+
+    if (OPTIONS.testAgainstLatestSnapshot) {
+      const knownGoodSnapshot = this.getLatestSnapshot(prefix);
+
+      if (knownGoodSnapshot) {
+        return knownGoodSnapshot;
+      } else {
+        throw new Error(`No snapshots found for prefix: ${prefix} in ${this.fixturesDir} snapshots directory`);
+      }
     }
 
     const snapshotName = `${prefix}_v${this.linterVersion}.shot`;
