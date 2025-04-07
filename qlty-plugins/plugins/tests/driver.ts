@@ -7,7 +7,7 @@ import * as git from "simple-git";
 import * as util from "util";
 import { getKnownGoodVersion } from "./runLinterTest";
 import { OPTIONS } from "./utils";
-import semver from 'semver';
+import semver from "semver";
 
 interface Issue {
   tool: string;
@@ -204,7 +204,9 @@ export class QltyDriver {
       if (knownGoodSnapshot) {
         return knownGoodSnapshot;
       } else {
-        throw new Error(`No snapshots found for prefix: ${prefix} in ${this.fixturesDir} snapshots directory`);
+        throw new Error(
+          `No snapshots found for prefix: ${prefix} in ${this.fixturesDir} snapshots directory`,
+        );
       }
     }
 

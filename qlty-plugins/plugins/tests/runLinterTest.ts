@@ -6,7 +6,7 @@ import { testResults } from "tests";
 import toml from "toml";
 import { QltyDriver } from "./driver";
 import { OPTIONS } from "./utils";
-import semver from 'semver';
+import semver from "semver";
 
 Debug.inspectOpts!.hideDate = true;
 
@@ -24,7 +24,10 @@ type Target = {
   linterVersions: any[];
 };
 
-const getLatestSnapshotVersion = (prefix: string, snapshotsDir: string): string => {
+const getLatestSnapshotVersion = (
+  prefix: string,
+  snapshotsDir: string,
+): string => {
   const files = fs.readdirSync(snapshotsDir);
 
   const regex = new RegExp(`^${prefix}_v(\\d+\\.\\d+\\.\\d+)\\.shot$`);
@@ -43,9 +46,11 @@ const getLatestSnapshotVersion = (prefix: string, snapshotsDir: string): string 
   if (latestSnapshotVersion) {
     return latestSnapshotVersion;
   } else {
-    throw new Error(`No snapshots found for prefix: ${prefix} in ${snapshotsDir}`);
+    throw new Error(
+      `No snapshots found for prefix: ${prefix} in ${snapshotsDir}`,
+    );
   }
-}
+};
 
 export const getVersionsForTarget = (
   dirname: string,
@@ -87,8 +92,11 @@ export const getVersionsForTarget = (
     );
 
     return [knownGoodVersion];
-  } else if (OPTIONS.testAgainstLatestSnapshot){
-    const latestSnapshotVersion = getLatestSnapshotVersion(prefix, snapshotsDir);
+  } else if (OPTIONS.testAgainstLatestSnapshot) {
+    const latestSnapshotVersion = getLatestSnapshotVersion(
+      prefix,
+      snapshotsDir,
+    );
     console.log(
       "Running test for ",
       linterName,
