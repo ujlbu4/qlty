@@ -133,7 +133,7 @@ async function main(): Promise<void> {
       try {
         console.log(`Testing ${linterLabel}...`);
         execSync(
-          `QLTY_PLUGINS_LINTER_VERSION=${latestLinterVersion} QLTY_PLUGINS_TEST_AGAINST_LATEST_SNAPSHOT=true npm test ${linter}.test.ts`,
+          `QLTY_PLUGINS_LINTER_VERSION=${latestLinterVersion} QLTY_PLUGINS_COMPARE_LATEST_SNAPSHOT=true npm test ${linter}.test.ts`,
           { stdio: "inherit" },
         );
 

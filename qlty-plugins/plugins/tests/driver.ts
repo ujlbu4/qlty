@@ -184,21 +184,7 @@ export class QltyDriver {
   }
 
   snapshotPath(prefix: string): string {
-    if (OPTIONS.testAgainstKnownGoodVersion) {
-      const knownGoodVersion = getKnownGoodVersion(
-        this.pluginDir,
-        this.linterName,
-      );
-      const knownGoodSnapshot = path.resolve(
-        this.fixturesDir,
-        SNAPSHOTS_DIR,
-        `${prefix}_v${knownGoodVersion}.shot`,
-      );
-
-      return knownGoodSnapshot;
-    }
-
-    if (OPTIONS.testAgainstLatestSnapshot) {
+    if (OPTIONS.compareLatestSnapshots) {
       const knownGoodSnapshot = this.getLatestSnapshot(prefix);
 
       if (knownGoodSnapshot) {
