@@ -5,7 +5,7 @@ exports[`linter=tflint fixture=aws_nested version=0.52.0 1`] = `
   "issues": [
     {
       "category": "CATEGORY_LINT",
-      "documentationUrl": "https://github.com/terraform-linters/tflint-ruleset-terraform/blob/v0.8.0/docs/rules/terraform_required_version.md",
+      "documentationUrl": "https://github.com/terraform-linters/tflint-ruleset-terraform/blob/v<version>/docs/rules/terraform_required_version.md",
       "level": "LEVEL_MEDIUM",
       "location": {
         "path": "nested/aws.in.tf",
@@ -17,7 +17,7 @@ exports[`linter=tflint fixture=aws_nested version=0.52.0 1`] = `
     },
     {
       "category": "CATEGORY_LINT",
-      "documentationUrl": "https://github.com/terraform-linters/tflint-ruleset-terraform/blob/v0.8.0/docs/rules/terraform_typed_variables.md",
+      "documentationUrl": "https://github.com/terraform-linters/tflint-ruleset-terraform/blob/v<version>/docs/rules/terraform_typed_variables.md",
       "level": "LEVEL_MEDIUM",
       "location": {
         "path": "nested/aws.in.tf",
@@ -48,7 +48,7 @@ variable "foo" {
     },
     {
       "category": "CATEGORY_LINT",
-      "documentationUrl": "https://github.com/terraform-linters/tflint-ruleset-terraform/blob/v0.8.0/docs/rules/terraform_unused_declarations.md",
+      "documentationUrl": "https://github.com/terraform-linters/tflint-ruleset-terraform/blob/v<version>/docs/rules/terraform_unused_declarations.md",
       "level": "LEVEL_MEDIUM",
       "location": {
         "path": "nested/aws.in.tf",
@@ -79,7 +79,7 @@ variable "foo" {
     },
     {
       "category": "CATEGORY_LINT",
-      "documentationUrl": "https://github.com/terraform-linters/tflint-ruleset-terraform/blob/v0.8.0/docs/rules/terraform_unused_declarations.md",
+      "documentationUrl": "https://github.com/terraform-linters/tflint-ruleset-terraform/blob/v<version>/docs/rules/terraform_unused_declarations.md",
       "level": "LEVEL_MEDIUM",
       "location": {
         "path": "nested/aws.in.tf",

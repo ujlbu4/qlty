@@ -5,7 +5,7 @@ exports[`linter=pmd fixture=apex version=7.0.0 1`] = `
   "issues": [
     {
       "category": "CATEGORY_LINT",
-      "documentationUrl": "https://docs.pmd-code.org/pmd-doc-7.0.0/pmd_rules_apex_documentation.html#apexdoc",
+      "documentationUrl": "https://docs.pmd-code.org/pmd-doc-<version>/pmd_rules_apex_documentation.html#apexdoc",
       "level": "LEVEL_MEDIUM",
       "location": {
         "path": "apex.in.cls",
@@ -33,7 +33,7 @@ return 'Hello World!';
     },
     {
       "category": "CATEGORY_LINT",
-      "documentationUrl": "https://docs.pmd-code.org/pmd-doc-7.0.0/pmd_rules_apex_documentation.html#apexdoc",
+      "documentationUrl": "https://docs.pmd-code.org/pmd-doc-<version>/pmd_rules_apex_documentation.html#apexdoc",
       "level": "LEVEL_MEDIUM",
       "location": {
         "path": "apex.in.cls",
@@ -59,7 +59,7 @@ return 'Hello World!';
     },
     {
       "category": "CATEGORY_LINT",
-      "documentationUrl": "https://docs.pmd-code.org/pmd-doc-7.0.0/pmd_rules_apex_bestpractices.html#avoidglobalmodifier",
+      "documentationUrl": "https://docs.pmd-code.org/pmd-doc-<version>/pmd_rules_apex_bestpractices.html#avoidglobalmodifier",
       "level": "LEVEL_MEDIUM",
       "location": {
         "path": "apex.in.cls",

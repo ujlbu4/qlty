@@ -21,7 +21,18 @@ expect.extend({
 
 export const linterCheckTest = (linterName: string, dirname: string) =>
   runLinterTest(linterName, dirname, (testRunResult, snapshotPath) => {
-    expect(testRunResult.deterministicResults()).toMatchSpecificSnapshot(
+    const normalizedResults = testRunResult.deterministicResults();
+
+    // Remove documentationUrl from all issues
+    if (Array.isArray(normalizedResults.issues)) {
+      for (const issue of normalizedResults.issues) {
+        if (issue.documentationUrl) {
+          issue.documentationUrl = issue.documentationUrl.replace(/\d+\.\d+\.\d+/, "<version>");
+        }
+      }
+    }
+
+    expect(normalizedResults).toMatchSpecificSnapshot(
       snapshotPath,
     );
   });
