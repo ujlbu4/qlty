@@ -78,21 +78,7 @@ export const getVersionsForTarget = (
 
   const uniqueVersionsList = Array.from(new Set(versionsList)).sort();
 
-  if (
-    OPTIONS.linterVersion == "KnownGoodVersion" ||
-    OPTIONS.testAgainstKnownGoodVersion
-  ) {
-    const knownGoodVersion = getKnownGoodVersion(dirname, linterName);
-
-    console.log(
-      "Running test for ",
-      linterName,
-      " with known good version: ",
-      knownGoodVersion,
-    );
-
-    return [knownGoodVersion];
-  } else if (OPTIONS.testAgainstLatestSnapshot) {
+  if (OPTIONS.compareLatestSnapshots) {
     const latestSnapshotVersion = getLatestSnapshotVersion(
       prefix,
       snapshotsDir,

@@ -5,7 +5,6 @@ import * as os from "os";
 import path from "path";
 import * as git from "simple-git";
 import * as util from "util";
-import { getKnownGoodVersion } from "./runLinterTest";
 import { OPTIONS } from "./utils";
 import semver from "semver";
 
