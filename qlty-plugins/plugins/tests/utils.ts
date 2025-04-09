@@ -11,8 +11,8 @@ export interface EnvOptions {
   /** Prevents the deletion of sandbox test dirs. */
   sandboxDebug: boolean;
 
-  /** Test the output against the known good version output of the linter. */
-  testAgainstKnownGoodVersion: boolean;
+  /** Test the output against the latest snapshots of the linter. */
+  compareLatestSnapshots: boolean;
 }
 
 const parseLinterVersion = (value: string): LinterVersion | undefined => {
@@ -27,8 +27,8 @@ export const OPTIONS: EnvOptions = {
     process.env.QLTY_PLUGINS_LINTER_VERSION ?? "",
   ),
   sandboxDebug: Boolean(process.env.QLTY_PLUGINS_SANDBOX_DEBUG),
-  testAgainstKnownGoodVersion: Boolean(
-    process.env.QLTY_PLUGINS_TEST_AGAINST_KNOWN_GOOD_VERSION,
+  compareLatestSnapshots: Boolean(
+    process.env.QLTY_PLUGINS_COMPARE_LATEST_SNAPSHOT,
   ),
 };
 

@@ -6,6 +6,7 @@ import { testResults } from "tests";
 import toml from "toml";
 import { QltyDriver } from "./driver";
 import { OPTIONS } from "./utils";
+import semver from "semver";
 
 Debug.inspectOpts!.hideDate = true;
 
@@ -21,6 +22,34 @@ type Target = {
   prefix: string;
   input: string;
   linterVersions: any[];
+};
+
+const getLatestSnapshotVersion = (
+  prefix: string,
+  snapshotsDir: string,
+): string => {
+  const files = fs.readdirSync(snapshotsDir);
+
+  const regex = new RegExp(`^${prefix}_v(\\d+\\.\\d+\\.\\d+)\\.shot$`);
+  let latestSnapshotVersion: string | undefined;
+
+  for (const file of files) {
+    const match = file.match(regex);
+    if (match) {
+      const version = match[1];
+      if (!latestSnapshotVersion || semver.gt(version, latestSnapshotVersion)) {
+        latestSnapshotVersion = version;
+      }
+    }
+  }
+
+  if (latestSnapshotVersion) {
+    return latestSnapshotVersion;
+  } else {
+    throw new Error(
+      `No snapshots found for prefix: ${prefix} in ${snapshotsDir}`,
+    );
+  }
 };
 
 export const getVersionsForTarget = (
@@ -49,20 +78,18 @@ export const getVersionsForTarget = (
 
   const uniqueVersionsList = Array.from(new Set(versionsList)).sort();
 
-  if (
-    OPTIONS.linterVersion == "KnownGoodVersion" ||
-    OPTIONS.testAgainstKnownGoodVersion
-  ) {
-    const knownGoodVersion = getKnownGoodVersion(dirname, linterName);
-
+  if (OPTIONS.compareLatestSnapshots) {
+    const latestSnapshotVersion = getLatestSnapshotVersion(
+      prefix,
+      snapshotsDir,
+    );
     console.log(
       "Running test for ",
       linterName,
-      " with known good version: ",
-      knownGoodVersion,
+      " with latest snapshot version: ",
+      latestSnapshotVersion,
     );
-
-    return [knownGoodVersion];
+    return [latestSnapshotVersion];
   } else if (OPTIONS.linterVersion) {
     return [OPTIONS.linterVersion];
   } else {
