@@ -27,14 +27,15 @@ export const linterCheckTest = (linterName: string, dirname: string) =>
     if (Array.isArray(normalizedResults.issues)) {
       for (const issue of normalizedResults.issues) {
         if (issue.documentationUrl) {
-          issue.documentationUrl = issue.documentationUrl.replace(/\d+\.\d+\.\d+/, "<version>");
+          issue.documentationUrl = issue.documentationUrl.replace(
+            /\d+\.\d+\.\d+/,
+            "<version>",
+          );
         }
       }
     }
 
-    expect(normalizedResults).toMatchSpecificSnapshot(
-      snapshotPath,
-    );
+    expect(normalizedResults).toMatchSpecificSnapshot(snapshotPath);
   });
 
 export const linterStructureTest = (linterName: string, dirname: string) =>
