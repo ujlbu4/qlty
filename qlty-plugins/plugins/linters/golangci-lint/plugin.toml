@@ -22,12 +22,24 @@ description = "A powerful Go linter runner"
 security = true
 suggested_mode = "comment"
 
-[plugins.definitions.golangci-lint.drivers.lint]
+[[plugins.definitions.golangci-lint.drivers.lint.version]]
+version_matcher = "<2.0.0"
 script = "golangci-lint run --out-format json --timeout 10m --exclude gofmt --allow-parallel-runners --issues-exit-code 0 ${target}"
 target = { type = "literal", path = "./..." }
 runs_from = { type = "root_or_parent_with", path = "go.mod" }
 success_codes = [0, 2, 7]
 output = "stdout"
+output_format = "golangci_lint"
+suggested = "targets"
+output_missing = "parse"
+
+[[plugins.definitions.golangci-lint.drivers.lint.version]]
+version_matcher = ">=2.0.0"
+script = "golangci-lint run --output.json.path ${tmpfile} --timeout 10m --allow-parallel-runners --issues-exit-code 0 ${target}"
+target = { type = "literal", path = "./..." }
+runs_from = { type = "root_or_parent_with", path = "go.mod" }
+success_codes = [0, 2, 7]
+output = "tmpfile"
 output_format = "golangci_lint"
 suggested = "targets"
 output_missing = "parse"

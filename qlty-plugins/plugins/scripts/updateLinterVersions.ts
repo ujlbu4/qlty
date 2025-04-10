@@ -6,6 +6,7 @@ import { fetchLatestVersion } from "./fetchLatestVersion/fetchLatestVersion";
 
 const REPO_ROOT: string = path.resolve(__dirname, "..");
 const LINTERS_PATH: string = path.resolve(REPO_ROOT, "linters");
+const LINTERS_TO_SKIP: string[] = ["tsc"];
 
 // Return type for getLinterDef
 interface LinterDefinition {
@@ -52,7 +53,10 @@ const getLintersList = async (): Promise<string[]> => {
         })();
       }),
     );
-    return folders.filter((folder) => folder !== undefined);
+    return folders.filter(
+      (folder): folder is string =>
+        folder !== undefined && !LINTERS_TO_SKIP.includes(folder),
+    );
   } catch (err) {
     throw new Error(`Failed to read linters directory: ${err}`);
   }
