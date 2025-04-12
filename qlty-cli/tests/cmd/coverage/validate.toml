@@ -1,0 +1,10 @@
+args = [
+  "coverage",
+  "validate",
+  "lcov.info"
+]
+bin.name = "qlty"
+status.code = 4
+
+[env]
+remove = ["GITHUB_ACTIONS"]

@@ -1,0 +1,11 @@
+args = [
+  "coverage",
+  "validate",
+  "lcov.info",
+  "--threshold",
+  "40"
+]
+bin.name = "qlty"
+
+[env]
+remove = ["GITHUB_ACTIONS"]
