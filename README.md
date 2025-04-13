@@ -1,17 +1,23 @@
-# Qlty CLI &nbsp; [![GitHub stars](https://img.shields.io/github/stars/qltysh/qlty)](https://github.com/qltysh/qlty)
+<div align="left" id="top">
+<a href="https://qlty.sh"><img alt="Qlty" src="https://cdn.brandfetch.io/idGrC4YgF4/theme/dark/idPHbenxLP.svg?c=1bxid64Mup7aczewSAYMX&t=1734797742010" height="75"></a>
+</div>
 
-## Universal linting, auto-formatting, maintainability, and security scanning
+## Qlty CLI: Universal linting, auto-formatting, maintainability, and security scanning
 
-[Qlty CLI](https://qlty.sh) is a multi-language code quality CLI for linting, auto-formatting, maintainability, and security with support for 50+ static analysis tools.
+Qlty CLI is a multi-language code quality tool for linting, auto-formatting, maintainability, and security with support for 70+ static analysis tools for 40+ languages and technologies.
 
 With Qlty CLI, polyglot team can take advantage of the best code quality static analysis with fast, consistent, and unified results through a single tool. Configuration is done through a simple `.qlty/qlty.toml` file in your repository, which can be auto-generated based on the languages you use.
 
-The Qlty CLI and this Visual Studio Code extension are **completely free for all use**, including for commercial projects, with no limits on contributors.
+The Qlty CLI is **completely free for all use**, including for commercial projects, with no limits on contributors.
 
 [![Maintainability](https://qlty.sh/badges/f983cb35-d208-4d2f-8872-03fb3e1205de/maintainability.svg)](https://qlty.sh/gh/qltysh/projects/qlty)
 [![Code Coverage](https://qlty.sh/badges/f983cb35-d208-4d2f-8872-03fb3e1205de/test_coverage.svg)](https://qlty.sh/gh/qltysh/projects/qlty)
 [![CI Status](https://img.shields.io/github/actions/workflow/status/qltysh/qlty/cli.yml)](https://github.com/qltysh/qlty/actions/workflows/cli.yml)
 [![Latest release](https://img.shields.io/github/v/release/qltysh/qlty)](https://github.com/qltysh/qlty/releases)
+[![docs.qlty.sh](https://img.shields.io/badge/docs-docs.qlty.sh-08b2b7)](https://docs.qlty.sh)
+[![GitHub stars](https://img.shields.io/github/stars/qltysh/qlty)](https://github.com/qltysh/qlty)
+
+---
 
 ## 📖 Table of Contents
 
@@ -27,6 +33,8 @@ The Qlty CLI and this Visual Studio Code extension are **completely free for all
 - [🛟 Help or Feedback](#-help-or-feedback)
 - [🧑‍💻 Contributing](#-contributing)
 - [⚖️ License](#️-license)
+
+---
 
 ## ✨ Key Features
 
@@ -69,6 +77,8 @@ Qlty CLI is part of Qlty Software's comprehensive platform for code quality. Bri
 - [GitHub Action](https://github.com/qltysh/qlty-action) -- Run Qlty CLI within your CI workflows
 - [Chrome and Firefox Extension](https://github.com/qltysh/qlty-browser) -- Adds code coverage data to GitHub.com
 
+---
+
 ## 🚀 Quick Start
 
 ### Installation
@@ -86,7 +96,8 @@ powershell -c "iwr https://qlty.sh | iex"
 
 We also package the CLI as a [Docker image](https://github.com/qltysh/qlty/pkgs/container/qlty) on GitHub Container Registry (GHCR).
 
-_Note:_ To achieve the fastest performance, the Qlty CLI does _not_ depend on running linters via Docker. The Docker packages are for cases where running Docker containers is preferred over native binaries.
+> [!NOTE]
+> The Qlty CLI does _not_ use Docker to run linters. By running linters natively, we achieve maximum performance. The Docker image is provided for situations where running the CLI as a containers is preferred over running it as a native binary.
 
 ### Setting up Qlty in a new repository
 
@@ -130,6 +141,8 @@ Qlty CLI is configured using a `.qlty/qlty.toml` file in your Git repository. Yo
 
 Read our documentation about [configuration](https://docs.qlty.sh/analysis-configuration) for more information.
 
+---
+
 ## 🧹 Available Linters
 
 Over 20,000 code quality rules are available via the Qlty CLI through its 60+ linter plugins.
@@ -144,6 +157,7 @@ qlty plugins enable <NAME>
 |-|-|
 | All files | gitleaks, ripgrep, semgrep, trivy, trufflehog, vale |
 | Apex | pmd |
+| C# | complexity, duplication |
 | C/C++ | osv-scanner, trivy |
 | CloudFormation | checkov |
 | CoffeeScript | coffeelint |
@@ -154,32 +168,34 @@ qlty plugins enable <NAME>
 | Elixer | osv-scanner, trivy |
 | Erlang | osv-scanner, trivy |
 | GitHub Actions | actionlint |
-| Go | gofmt, golangci-lint, osv-scanner, radarlint |
+| Go | complexity, duplication, gofmt, golangci-lint, osv-scanner, radarlint |
 | GraphQL | prettier |
 | HTML | prettier |
-| Java | checkstyle, google-java-format, osv-scanner, pmd, radarlint, trivy |
-| JavaScript | biome, eslint, knip, osv-scanner, oxc, prettier, radarlint, trivy |
+| Java | checkstyle, complexity, duplication, google-java-format, osv-scanner, pmd, radarlint, trivy |
+| JavaScript | biome, complexity, duplication, eslint, knip, osv-scanner, oxc, prettier, radarlint, trivy |
 | JSON | biome, prettier |
-| Kotlin | osv-scanner, radarlint, trivy |
+| Kotlin | complexity, duplication, osv-scanner, radarlint, trivy |
 | Kubernetes | kube-linter |
 | Markdown | markdownlint, prettier |
 | OpenAPI | redocly |
-| PHP | osv-scanner, php-codesniffer, php-cs-fixer, phpstan, radarlint, trivy |
+| PHP | complexity, duplication, osv-scanner, php-codesniffer, php-cs-fixer, phpstan, radarlint, trivy |
 | Prisma | prisma |
-| Python | bandit, black, flake8, mypy, osv-scanner, radarlint, ruff, trivy |
+| Python | bandit, black, complexity, duplication, flake8, mypy, osv-scanner, radarlint, ruff, trivy |
 | R | osv-scanner, trivy |
-| Ruby | brakeman, osv-scanner, radarlint, reek, rubocop, ruby-stree, standardrb, trivy |
-| Rust | clippy, osv-scanner, rustfmt, trivy |
+| Ruby | brakeman, complexity, duplication, osv-scanner, radarlint, reek, rubocop, ruby-stree, standardrb, trivy |
+| Rust | clippy, complexity, duplication, osv-scanner, rustfmt, trivy |
 | SASS | prettier, stylelint |
 | Scala | radarlint |
 | Shell | shellcheck, shfmt |
 | SQL | sqlfluff |
 | Swift | swiftlint | 
 | Terraform | checkov, osv-scanner, radarlint, radarlint, tflint, trivy, trivy |
-| TypeScript | biome, eslint, knip, oxc, prettier |
+| TypeScript | biome, complexity, duplication, eslint, knip, oxc, prettier |
 | YAML | prettier, trivy, yamllint |
 
 The [full list of plugins](https://github.com/qltysh/qlty/tree/main/qlty-plugins/plugins/linters) is available on GitHub.
+
+---
 
 ## 🖥️ System Requirements
 
@@ -189,6 +205,8 @@ Qlty CLI is available for MacOS, Linux, and Windows on x86 and ARM platforms.
 
 Certain PHP linters require a working installation of PHP available in your `$PATH`. To install PHP, use [Homebrew](https://brew.sh/) or an alternative method.
 
+---
+
 ## 🛟 Help or Feedback
 
 - Read the [documentation](https://docs.qlty.sh)
@@ -197,6 +215,8 @@ Certain PHP linters require a working installation of PHP available in your `$PA
 - [Feature requests](https://github.com/orgs/qltysh/discussions/categories/feedback) via GitHub Discussions
 - [Bug reports](https://github.com/qltysh/qlty/issues/new/choose) via GitHub Issues
 - [Plugin request](https://github.com/qltysh/qlty/issues/new/choose) via GitHub Issues
+
+---
 
 ## 🧑‍💻 Contributing
 
@@ -223,6 +243,8 @@ More information about how to contribute can be found in CONTRIBUTING.md.
 
 Reports of security vulnerabilities should be handled with the process outlined in SECURITY.md.
 
+---
+
 ## ⚖️ License
 
 Qlty CLI is published under a [Fair Source](https://fair.io/) license. As Fair Source, the Qlty CLI is free to use (including in commercial contexts), modify, and distribute in accordance with its license.
@@ -234,3 +256,5 @@ This code is made available under the Business Source License 1.1 (BSL) and tran
 We would like to thank all of the developers of code quality tooling like linters and meta-linters as well as everyone who has contributed to the field of open source static analysis. Qlty CLI stands on the shoulders of decades of this excellent work.
 
 Licenses for code incorporated into Qlty CLI can be found in the docs/licenses folder.
+
+---
