@@ -1,4 +1,4 @@
-# Qlty CLI
+# Qlty CLI &nbsp;&nbsp; [![GitHub stars](https://img.shields.io/github/stars/qltysh/qlty)](https://github.com/qltysh/qlty)
 
 ## Universal linting, auto-formatting, maintainability, and security scanning
 
@@ -7,6 +7,11 @@
 With Qlty CLI, polyglot team can take advantage of the best code quality static analysis with fast, consistent, and unified results through a single tool. Configuration is done through a simple `.qlty/qlty.toml` file in your repository, which can be auto-generated based on the languages you use.
 
 The Qlty CLI and this Visual Studio Code extension are **completely free for all use**, including for commercial projects, with no limits on contributors.
+
+[![Maintainability](https://qlty.sh/badges/f983cb35-d208-4d2f-8872-03fb3e1205de/maintainability.svg)](https://qlty.sh/gh/qltysh/projects/qlty)
+[![Code Coverage](https://qlty.sh/badges/f983cb35-d208-4d2f-8872-03fb3e1205de/test_coverage.svg)](https://qlty.sh/gh/qltysh/projects/qlty)
+[![CI Status](https://img.shields.io/github/actions/workflow/status/qltysh/qlty/cli.yml)](https://github.com/qltysh/qlty/actions/workflows/cli.yml)
+[![Latest release](https://img.shields.io/github/v/release/qltysh/qlty)](https://github.com/qltysh/qlty/releases)
 
 ## 📖 Table of Contents
 
