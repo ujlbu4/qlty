@@ -1,4 +1,4 @@
-# Qlty CLI &nbsp;&nbsp; [![GitHub stars](https://img.shields.io/github/stars/qltysh/qlty)](https://github.com/qltysh/qlty)
+# Qlty CLI &nbsp; [![GitHub stars](https://img.shields.io/github/stars/qltysh/qlty)](https://github.com/qltysh/qlty)
 
 ## Universal linting, auto-formatting, maintainability, and security scanning
 
