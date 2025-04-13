@@ -155,43 +155,43 @@ qlty plugins enable <NAME>
 
 | Technology | Available code quality tools |
 |-|-|
-| All files | gitleaks, ripgrep, semgrep, trivy, trufflehog, vale |
-| Apex | pmd |
-| C# | complexity, duplication |
-| C/C++ | osv-scanner, trivy |
-| CloudFormation | checkov |
-| CoffeeScript | coffeelint |
-| CSS | biome, prettier, stylelint |
-| Dart | osv-scanner, trivy |
-| Docker | checkov, dockerfmt, hadolint, radarlint, trivy |
-| Dotenv | dotenv-linter |
-| Elixer | osv-scanner, trivy |
-| Erlang | osv-scanner, trivy |
-| GitHub Actions | actionlint |
-| Go | complexity, duplication, gofmt, golangci-lint, osv-scanner, radarlint |
-| GraphQL | prettier |
-| HTML | prettier |
-| Java | checkstyle, complexity, duplication, google-java-format, osv-scanner, pmd, radarlint, trivy |
-| JavaScript | biome, complexity, duplication, eslint, knip, osv-scanner, oxc, prettier, radarlint, trivy |
-| JSON | biome, prettier |
-| Kotlin | complexity, duplication, osv-scanner, radarlint, trivy |
-| Kubernetes | kube-linter |
-| Markdown | markdownlint, prettier |
-| OpenAPI | redocly |
-| PHP | complexity, duplication, osv-scanner, php-codesniffer, php-cs-fixer, phpstan, radarlint, trivy |
-| Prisma | prisma |
-| Python | bandit, black, complexity, duplication, flake8, mypy, osv-scanner, radarlint, ruff, trivy |
-| R | osv-scanner, trivy |
-| Ruby | brakeman, complexity, duplication, osv-scanner, radarlint, reek, rubocop, ruby-stree, standardrb, trivy |
-| Rust | clippy, complexity, duplication, osv-scanner, rustfmt, trivy |
-| SASS | prettier, stylelint |
-| Scala | radarlint |
-| Shell | shellcheck, shfmt |
-| SQL | sqlfluff |
-| Swift | swiftlint | 
-| Terraform | checkov, osv-scanner, radarlint, radarlint, tflint, trivy, trivy |
-| TypeScript | biome, complexity, duplication, eslint, knip, oxc, prettier |
-| YAML | prettier, trivy, yamllint |
+| All files | [gitleaks](https://gitleaks.io/), [ripgrep](https://github.com/BurntSushi/ripgrep), [semgrep](https://semgrep.dev), [trivy](https://trivy.dev), [trufflehog](https://trufflesecurity.com/trufflehog), [vale](https://vale.sh/) |
+| Apex | [pmd](https://pmd.github.io/) |
+| C# | [complexity](https://github.com/qltysh/qlty/tree/main/qlty-smells), [duplication](https://github.com/qltysh/qlty/tree/main/qlty-smells) |
+| C/C++ | [osv-scanner](https://google.github.io/osv-scanner/), [trivy](https://trivy.dev) |
+| CloudFormation | [checkov](https://www.checkov.io/) |
+| CoffeeScript | [coffeelint](https://github.com/clutchski/coffeelint) |
+| CSS | [biome](https://biomejs.dev/), [prettier](https://prettier.io/), [stylelint](https://stylelint.io/) |
+| Dart | [osv-scanner](https://google.github.io/osv-scanner/), [trivy](https://trivy.dev) |
+| Docker | [checkov](https://www.checkov.io/), [dockerfmt](httpshttps://github.com/reteps/dockerfmt), [hadolint](https://github.com/hadolint/hadolint), [radarlint](https://github.com/qltysh/radarlint), [trivy](https://trivy.dev) |
+| Dotenv | [dotenv-linter](https://dotenv-linter.github.io/#/) |
+| Elixer | [osv-scanner](https://google.github.io/osv-scanner/), [trivy](https://trivy.dev) |
+| Erlang | [osv-scanner](https://google.github.io/osv-scanner/), [trivy](https://trivy.dev) |
+| GitHub Actions | [actionlint](https://rhysd.github.io/actionlint/) |
+| Go | [complexity](https://github.com/qltysh/qlty/tree/main/qlty-smells), [duplication](https://github.com/qltysh/qlty/tree/main/qlty-smells), [gofmt](https://pkg.go.dev/cmd/gofmt), [golangci-lint](https://golangci-lint.run/), [osv-scanner](https://google.github.io/osv-scanner/), [radarlint](https://github.com/qltysh/radarlint) |
+| GraphQL | [prettier](https://prettier.io/) |
+| HTML | [prettier](https://prettier.io/) |
+| Java | [checkstyle](https://checkstyle.org/), [complexity](https://github.com/qltysh/qlty/tree/main/qlty-smells), [duplication](https://github.com/qltysh/qlty/tree/main/qlty-smells), [google-java-format](https://github.com/google/google-java-format), [osv-scanner](https://google.github.io/osv-scanner/), [pmd](https://pmd.github.io/), [radarlint](https://github.com/qltysh/radarlint), [trivy](https://trivy.dev) |
+| JavaScript | [biome](https://biomejs.dev/), [complexity](https://github.com/qltysh/qlty/tree/main/qlty-smells), [duplication](https://github.com/qltysh/qlty/tree/main/qlty-smells), [eslint](https://eslint.org/), [knip](https://knip.dev/), [osv-scanner](https://google.github.io/osv-scanner/), [oxc](https://oxc.rs/), [prettier](https://prettier.io/), [radarlint](https://github.com/qltysh/radarlint), [trivy](https://trivy.dev) |
+| JSON | [biome](https://biomejs.dev/), [prettier](https://prettier.io/) |
+| Kotlin | [complexity](https://github.com/qltysh/qlty/tree/main/qlty-smells), [duplication](https://github.com/qltysh/qlty/tree/main/qlty-smells), [osv-scanner](https://google.github.io/osv-scanner/), [radarlint](https://github.com/qltysh/radarlint), [trivy](https://trivy.dev) |
+| Kubernetes | [kube-linter](https://docs.kubelinter.io/#/) |
+| Markdown | [markdownlint](https://github.com/DavidAnson/markdownlint), [prettier](https://prettier.io/) |
+| OpenAPI | [redocly](https://redocly.com/docs/cli) |
+| PHP | [complexity](https://github.com/qltysh/qlty/tree/main/qlty-smells), [duplication](https://github.com/qltysh/qlty/tree/main/qlty-smells), [osv-scanner](https://google.github.io/osv-scanner/), [php-codesniffer](https://github.com/squizlabs/PHP_CodeSniffer), [php-cs-fixer](https://cs.symfony.com/), [phpstan](https://phpstan.org/), [radarlint](https://github.com/qltysh/radarlint), [trivy](https://trivy.dev) |
+| Prisma | [prisma](https://github.com/prisma/prisma) |
+| Python | [bandit](https://bandit.readthedocs.io/en/latest/), [black](https://github.com/psf/black), [complexity](https://github.com/qltysh/qlty/tree/main/qlty-smells), [duplication](https://github.com/qltysh/qlty/tree/main/qlty-smells), [flake8](https://flake8.pycqa.org/en/latest/), [mypy](https://www.mypy-lang.org/), [osv-scanner](https://google.github.io/osv-scanner/), [radarlint](https://github.com/qltysh/radarlint), [ruff](https://docs.astral.sh/ruff/), [trivy](https://trivy.dev) |
+| R | [osv-scanner](https://google.github.io/osv-scanner/), [trivy](https://trivy.dev) |
+| Ruby | [brakeman](https://brakemanscanner.org/), [complexity](https://github.com/qltysh/qlty/tree/main/qlty-smells), [duplication](https://github.com/qltysh/qlty/tree/main/qlty-smells), [osv-scanner](https://google.github.io/osv-scanner/), [radarlint](https://github.com/qltysh/radarlint), [reek](https://github.com/troessner/reek), [rubocop](https://docs.rubocop.org/rubocop/1.75/index.html), [ruby-stree](https://github.com/ruby-syntax-tree/syntax_tree), [standardrb](https://github.com/standardrb/standard), [trivy](https://trivy.dev) |
+| Rust | [clippy](https://rust-lang.github.io/rust-clippy/), [complexity](https://github.com/qltysh/qlty/tree/main/qlty-smells), [duplication](https://github.com/qltysh/qlty/tree/main/qlty-smells), [osv-scanner](https://google.github.io/osv-scanner/), [rustfmt](https://rust-lang.github.io/rustfmt/?version=v1.8.0&search=), [trivy](https://trivy.dev) |
+| SASS | [prettier](https://prettier.io/), [stylelint](https://stylelint.io/) |
+| Scala | [radarlint](https://github.com/qltysh/radarlint) |
+| Shell | [shellcheck](https://www.shellcheck.net/), [shfmt](https://pkg.go.dev/mvdan.cc/sh/v3) |
+| SQL | [sqlfluff](https://sqlfluff.com/) |
+| Swift | [swiftlint](https://realm.github.io/SwiftLint/) | 
+| Terraform | [checkov](https://www.checkov.io/), [osv-scanner](https://google.github.io/osv-scanner/), [radarlint](https://github.com/qltysh/radarlint), [tflint](https://github.com/terraform-linters/tflint), [trivy](https://trivy.dev) |
+| TypeScript | [biome](https://biomejs.dev/), [complexity](https://github.com/qltysh/qlty/tree/main/qlty-smells), [duplication](https://github.com/qltysh/qlty/tree/main/qlty-smells), [eslint](https://eslint.org/), [knip](https://knip.dev/), [oxc](https://oxc.rs/), [prettier](https://prettier.io/) |
+| YAML | [prettier](https://prettier.io/), [trivy](https://trivy.dev), [yamllint](https://github.com/adrienverge/yamllint) |
 
 The [full list of plugins](https://github.com/qltysh/qlty/tree/main/qlty-plugins/plugins/linters) is available on GitHub.
 
