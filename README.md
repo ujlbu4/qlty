@@ -12,7 +12,7 @@ The Qlty CLI is **completely free for all use**, including for commercial projec
 
 [![Maintainability](https://qlty.sh/badges/f983cb35-d208-4d2f-8872-03fb3e1205de/maintainability.svg)](https://qlty.sh/gh/qltysh/projects/qlty)
 [![Code Coverage](https://qlty.sh/badges/f983cb35-d208-4d2f-8872-03fb3e1205de/test_coverage.svg)](https://qlty.sh/gh/qltysh/projects/qlty)
-[![CI Status](https://img.shields.io/github/actions/workflow/status/qltysh/qlty/cli.yml)](https://github.com/qltysh/qlty/actions/workflows/cli.yml)
+[![Unit Tests](https://github.com/qltysh/qlty/actions/workflows/cli.yml/badge.svg)](https://github.com/qltysh/qlty/actions/workflows/cli.yml)
 [![Latest release](https://img.shields.io/github/v/release/qltysh/qlty)](https://github.com/qltysh/qlty/releases)
 [![docs.qlty.sh](https://img.shields.io/badge/docs-docs.qlty.sh-08b2b7)](https://docs.qlty.sh)
 [![GitHub stars](https://img.shields.io/github/stars/qltysh/qlty)](https://github.com/qltysh/qlty)
