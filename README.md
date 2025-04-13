@@ -2,7 +2,7 @@
 <a href="https://qlty.sh"><img alt="Qlty" src="https://cdn.brandfetch.io/idGrC4YgF4/theme/dark/idPHbenxLP.svg?c=1bxid64Mup7aczewSAYMX&t=1734797742010" height="75"></a>
 </div>
 
-## Qlty CLI: Universal linting, auto-formatting, maintainability, and security scanning
+## Universal linting, auto-formatting, maintainability, and security scanning
 
 Qlty CLI is a multi-language code quality tool for linting, auto-formatting, maintainability, and security with support for 70+ static analysis tools for 40+ languages and technologies.
 
