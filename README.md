@@ -163,7 +163,7 @@ qlty plugins enable <NAME>
 | CoffeeScript | [coffeelint](https://github.com/clutchski/coffeelint) |
 | CSS | [biome](https://biomejs.dev/), [prettier](https://prettier.io/), [stylelint](https://stylelint.io/) |
 | Dart | [osv-scanner](https://google.github.io/osv-scanner/), [trivy](https://trivy.dev) |
-| Docker | [checkov](https://www.checkov.io/), [dockerfmt](httpshttps://github.com/reteps/dockerfmt), [hadolint](https://github.com/hadolint/hadolint), [radarlint](https://github.com/qltysh/radarlint), [trivy](https://trivy.dev) |
+| Docker | [checkov](https://www.checkov.io/), [dockerfmt](https://github.com/reteps/dockerfmt), [hadolint](https://github.com/hadolint/hadolint), [radarlint](https://github.com/qltysh/radarlint), [trivy](https://trivy.dev) |
 | Dotenv | [dotenv-linter](https://dotenv-linter.github.io/#/) |
 | Elixer | [osv-scanner](https://google.github.io/osv-scanner/), [trivy](https://trivy.dev) |
 | Erlang | [osv-scanner](https://google.github.io/osv-scanner/), [trivy](https://trivy.dev) |
