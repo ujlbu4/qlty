@@ -242,6 +242,10 @@ The Qlty CLI calculates a variety of code quality metrics which are available th
       <th></th>
     </tr>
     <tr>
+      <td>Smells</td>
+      <td>The number of duplication and structure issues</td>
+    </tr>
+    <tr>
       <td>Technical Debt</td>
       <td>The estimated amount of time needed to resolve the code smells</td>
     </tr>
@@ -256,6 +260,10 @@ The Qlty CLI calculates a variety of code quality metrics which are available th
     <tr>
       <th>Security</th>
       <th></th>
+    </tr>
+    <tr>
+      <td>Security Issues by Level</td>
+      <td>Count of security issues by high, medium, and low level</td>
     </tr>
     <tr>
       <td>Security Issues</td>
@@ -332,6 +340,10 @@ The Qlty CLI calculates a variety of code quality metrics which are available th
     <tr>
       <td>Issues Count</td>
       <td>Count of static analysis issues</td>
+    </tr>
+    <tr>
+      <td>Issues Count by Level</td>
+      <td>Count of static analysis issues by high, medium, and low level</td>
     </tr>
   </tbody>
 </table>
