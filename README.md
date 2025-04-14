@@ -225,7 +225,7 @@ The Qlty CLI calculates a variety of code quality metrics which are available th
       <th>Complexity</th>
       <th></th>
     </tr>
-     <tr>
+    <tr>
       <td>Complexity Density</td>
       <td>Complexity divided by Code Lines</td>
     </tr>
@@ -236,6 +236,102 @@ The Qlty CLI calculates a variety of code quality metrics which are available th
     <tr>
       <td>Cyclomatic Complexity</td>
       <td>The count of Cyclomatic (McCabe's) Complexity</td>
+    </tr>
+    <tr>
+      <th>Maintainability</th>
+      <th></th>
+    </tr>
+    <tr>
+      <td>Technical Debt</td>
+      <td>The estimated amount of time needed to resolve the code smells</td>
+    </tr>
+    <tr>
+      <td>Technical Debt Ratio</td>
+      <td>Technical Debt divided by estimated implementation time</td>
+    </tr>
+    <tr>
+      <td>Maintainability Rating</td>
+      <td>Technical Debt Ratio expressed as a letter rating</td>
+    </tr>
+    <tr>
+      <th>Security</th>
+      <th></th>
+    </tr>
+    <tr>
+      <td>Security Issues</td>
+      <td>Count of security issues</td>
+    </tr>
+    <tr>
+      <td>Security Rating</td>
+      <td>A letter rating based on security issues and their severity level</td>
+    </tr>
+    <tr>
+      <th>Coverage</th>
+      <th></th>
+    </tr>
+    <tr>
+      <td>Covered Lines</td>
+      <td>Count of lines covered by automated tests</td>
+    </tr>
+    <tr>
+      <td>Uncovered Lines</td>
+      <td>Count of lines that could be covered but are not</td>
+    </tr>
+    <tr>
+      <td>Line Coverage</td>
+      <td>Covered Lines divided by Coverd Lines plus Uncovered Lines</td>
+    </tr>
+    <tr>
+      <td>Diff Coverage</td>
+      <td>The Line Coverage of the new and changes lines of a Git diff</td>
+    </tr>
+    <tr>
+      <td>Coverage Rating</td>
+      <td>Line Coverage expressed as a letter rating</td>
+    </tr>
+    <tr>
+      <th>Size</th>
+      <th></th>
+    </tr>
+    <tr>
+      <td>Classes</td>
+      <td>Count of classes</td>
+    </tr>
+    <tr>
+      <td>Fields</td>
+      <td>Count of unique fields</td>
+    </tr>
+    <tr>
+      <td>Functions</td>
+      <td>Count of functions or methods</td>
+    </tr>
+    <tr>
+      <td>Code Files</td>
+      <td>Count of programming language files</td>
+    </tr>
+    <tr>
+      <td>Lines</td>
+      <td>Count of all lines including blanks and comments</td>
+    </tr>
+    <tr>
+      <td>Lines of Code</td>
+      <td>Count of lines that are not blank or comments</td>
+    </tr>
+    <tr>
+      <td>Comment Lines</td>
+      <td>Count of comment lines</td>
+    </tr>
+    <tr>
+      <td>Comments Density</td>
+      <td>Comment Lines divided by Lines</td>
+    </tr>
+    <tr>
+      <th>Issues</th>
+      <th></th>
+    </tr>
+    <tr>
+      <td>Issues Count</td>
+      <td>Count of static analysis issues</td>
     </tr>
   </tbody>
 </table>
