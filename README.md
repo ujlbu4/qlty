@@ -100,41 +100,15 @@ We also package the CLI as a [Docker image](https://github.com/qltysh/qlty/pkgs/
 > [!NOTE]
 > The Qlty CLI does _not_ use Docker to run linters. By running linters natively, we achieve maximum performance. The Docker image is provided for situations where running the CLI as a containers is preferred over running it as a native binary.
 
-### Setting up Qlty in a new repository
+### Usage
 
-Setup Qlty within a Git repository:
-
-```bash
-cd my_repo/
-qlty init
-```
-
-### Linting and auto-formatting
-
-View a sample of lint issues:
-
-```bash
-qlty check --sample=5
-```
-
-Auto-format the codebase:
-
-```bash
-qlty fmt --all
-```
-
-### Maintainability and quality metrics
-Scan for code smells like duplication:
-
-```bash
-qlty smells --all
-```
-
-Review a summary of code quality metrics:
-
-```bash
-qlty metrics --all --max-depth=2 --sort complexity --limit 10
-```
+| Example Command | Description |
+|-|-|
+| `qlty init` | Setup Qlty within a Git repository |
+| `qlty check --sample=5` | View a sample of lint issues |
+| `qlty fmt --all` | Auto-format the codebase |
+| `qlty smells --all` | Scan for code smells like duplication |
+| `qlty metrics --max-depth=2 --sort complexity --all` | Review a summary of code quality metrics |
 
 ### Configuration
 
