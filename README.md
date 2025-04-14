@@ -100,6 +100,15 @@ We also package the CLI as a [Docker image](https://github.com/qltysh/qlty/pkgs/
 > [!NOTE]
 > The Qlty CLI does _not_ use Docker to run linters. By running linters natively, we achieve maximum performance. The Docker image is provided for situations where running the CLI as a containers is preferred over running it as a native binary.
 
+### Setting up Qlty in a new repository
+
+Setup Qlty within a Git repository:
+
+```bash
+cd my_repo/
+qlty init
+```
+
 ### Usage
 
 | Example Command | Description |
