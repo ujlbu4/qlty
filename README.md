@@ -25,8 +25,7 @@ The Qlty CLI is **completely free for all use**, including for commercial projec
 - [🚀 Quick Start](#-quick-start)
   - [📦 Installation](#-quick-start)
   - [Setting up Qlty in a new repository](#setting-up-qlty-in-a-new-repository)
-  - [Linting and auto-formatting](#linting-and-auto-formatting)
-  - [Maintinability and quality metrics](#maintainability-and-quality-metrics)
+  - [Usage](#usage)
   - [Configuration](#configuration)
 - [🧹 Available Linters](#-available-linters)
 - [📊 Code Quality Metrics](#-code-quality-metrics)
@@ -109,32 +108,15 @@ cd my_repo/
 qlty init
 ```
 
-### Linting and auto-formatting
+### Usage
 
-View a sample of lint issues:
-
-```bash
-qlty check --sample=5
-```
-
-Auto-format the codebase:
-
-```bash
-qlty fmt --all
-```
-
-### Maintainability and quality metrics
-Scan for code smells like duplication:
-
-```bash
-qlty smells --all
-```
-
-Review a summary of code quality metrics:
-
-```bash
-qlty metrics --all --max-depth=2 --sort complexity --limit 10
-```
+| Example Command | Description |
+|-|-|
+| `qlty init` | Setup Qlty within a Git repository |
+| `qlty check --sample=5` | View a sample of lint issues |
+| `qlty fmt --all` | Auto-format the codebase |
+| `qlty smells --all` | Scan for code smells like duplication |
+| `qlty metrics --max-depth=2 --sort complexity --all` | Review a summary of code quality metrics |
 
 ### Configuration
 
@@ -202,33 +184,155 @@ The [full list of plugins](https://github.com/qltysh/qlty/tree/main/qlty-plugins
 
 The Qlty CLI calculates a variety of code quality metrics which are available through the `qlty metrics` subcommand and as trends on [Qlty Cloud](https://qlty.sh).
 
-| Metric | Category | Definition |
-|-|-|-|
-| Duplication Density | Duplication | Duplicated Lines divided by Code Lines |
-| Duplicated Lines | Duplication | The number of lines that are duplicated |
-| Duplicated Blocks | Duplication | The number of contiguous spans of duplicated lines |
-| Complexity Density | Complexity | Complexity divided by Code Lines |
-| Complexity | Complexity | The count of Cognitive Complexity |
-| Cyclomatic Complexity | Complexity | The count of Cyclomatic (McCabe's) Complexity |
-| Technical Debt | Maintainability | The estimated amount of time needed to resolve the code smells |
-| Technical Debt Ratio | Maintainability | Technical Debt divided by estimated implementation time |
-| Maintainability Rating | Maintainability | Technical Debt Ratio expressed as a letter rating |
-| Security Issues | Security | Count of security issues |
-| Security Rating | Security | A letter rating based on security issues and their severity level |
-| Covered Lines | Coverage | Count of lines covered by automated tests |
-| Uncovered Lines | Coverage | Count of lines that could be covered but are not |
-| Line Coverage | Coverage | Covered Lines divided by Coverd Lines plus Uncovered Lines |
-| Diff Coverage | Coverage | The Line Coverage of the new and changes lines of a Git diff |
-| Coverage Rating | Coverage | Line Coverage expressed as a letter rating |
-| Classes | Size | Count of classes |
-| Fields | Size | Count of unique fields |
-| Functions | Size | Count of functions or methods |
-| Code Files | Size | Count of programming language files |
-| Lines | Size | Count of all lines including blanks and comments |
-| Lines of Code | Size | Count of lines that are not blank or comments |
-| Comment Lines | Size | Count of comment lines |
-| Comments Density | Size | Comment Lines divided by Lines |
-| Issues Count | Issues | Count of static analysis issues |
+<table>
+  <thead>
+  <tbody>
+    <tr>
+      <th>Duplication</th>
+      <th></th>
+    </tr>
+    <tr>
+      <td>Duplication Density</td>
+      <td>Duplicated Lines divided by Code Lines</td>
+    </tr>
+    <tr>
+      <td>Duplicated Lines</td>
+      <td>The number of lines that are duplicated</td>
+    </tr>
+    <tr>
+      <td>Duplicated Blocks</td>
+      <td>The number of contiguous spans of duplicated lines</td>
+    </tr>
+    <tr>
+      <th>Complexity</th>
+      <th></th>
+    </tr>
+    <tr>
+      <td>Complexity Density</td>
+      <td>Complexity divided by Code Lines</td>
+    </tr>
+    <tr>
+      <td>Total Complexity</td>
+      <td>The count of Cognitive Complexity</td>
+    </tr>
+    <tr>
+      <td>Cyclomatic Complexity</td>
+      <td>The count of Cyclomatic (McCabe's) Complexity</td>
+    </tr>
+    <tr>
+      <th>Maintainability</th>
+      <th></th>
+    </tr>
+    <tr>
+      <td>Smells</td>
+      <td>The number of duplication and structure issues</td>
+    </tr>
+    <tr>
+      <td>Technical Debt</td>
+      <td>The estimated amount of time needed to resolve the code smells</td>
+    </tr>
+    <tr>
+      <td>Technical Debt Ratio</td>
+      <td>Technical Debt divided by estimated implementation time</td>
+    </tr>
+    <tr>
+      <td>Maintainability Rating</td>
+      <td>Technical Debt Ratio expressed as a letter rating</td>
+    </tr>
+    <tr>
+      <td>LCOM</td>
+      <td>Lack of cohehsion in methods (LCOM4)</td>
+    </tr>
+    <tr>
+      <th>Security</th>
+      <th></th>
+    </tr>
+    <tr>
+      <td>Security Issues by Level</td>
+      <td>Count of security issues by high, medium, and low level</td>
+    </tr>
+    <tr>
+      <td>Security Issues</td>
+      <td>Count of security issues</td>
+    </tr>
+    <tr>
+      <td>Security Rating</td>
+      <td>A letter rating based on security issues and their severity level</td>
+    </tr>
+    <tr>
+      <th>Coverage</th>
+      <th></th>
+    </tr>
+    <tr>
+      <td>Covered Lines</td>
+      <td>Count of lines covered by automated tests</td>
+    </tr>
+    <tr>
+      <td>Uncovered Lines</td>
+      <td>Count of lines that could be covered but are not</td>
+    </tr>
+    <tr>
+      <td>Line Coverage</td>
+      <td>Covered Lines divided by Coverd Lines plus Uncovered Lines</td>
+    </tr>
+    <tr>
+      <td>Diff Coverage</td>
+      <td>The Line Coverage of the new and changes lines of a Git diff</td>
+    </tr>
+    <tr>
+      <td>Coverage Rating</td>
+      <td>Line Coverage expressed as a letter rating</td>
+    </tr>
+    <tr>
+      <th>Size</th>
+      <th></th>
+    </tr>
+    <tr>
+      <td>Classes</td>
+      <td>Count of classes</td>
+    </tr>
+    <tr>
+      <td>Fields</td>
+      <td>Count of unique fields</td>
+    </tr>
+    <tr>
+      <td>Functions</td>
+      <td>Count of functions or methods</td>
+    </tr>
+    <tr>
+      <td>Code Files</td>
+      <td>Count of programming language files</td>
+    </tr>
+    <tr>
+      <td>Lines</td>
+      <td>Count of all lines including blanks and comments</td>
+    </tr>
+    <tr>
+      <td>Lines of Code</td>
+      <td>Count of lines that are not blank or comments</td>
+    </tr>
+    <tr>
+      <td>Comment Lines</td>
+      <td>Count of comment lines</td>
+    </tr>
+    <tr>
+      <td>Comments Density</td>
+      <td>Comment Lines divided by Lines</td>
+    </tr>
+    <tr>
+      <th>Issues</th>
+      <th></th>
+    </tr>
+    <tr>
+      <td>Issues Count</td>
+      <td>Count of static analysis issues</td>
+    </tr>
+    <tr>
+      <td>Issues Count by Level</td>
+      <td>Count of static analysis issues by high, medium, and low level</td>
+    </tr>
+  </tbody>
+</table>
 
 Quality metrics are available for C#, Go, Java, JavaScript, Kotlin, PHP, Python, Ruby, Rust, and TypeScript.
 
