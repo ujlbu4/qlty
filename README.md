@@ -218,12 +218,24 @@ The Qlty CLI calculates a variety of code quality metrics which are available th
       <td>The number of lines that are duplicated</td>
     </tr>
     <tr>
-      <td>Duplication</td>
+      <td>Duplicated Blocks</td>
       <td>The number of contiguous spans of duplicated lines</td>
     </tr>
     <tr>
       <th>Complexity</th>
+      <th></th>
+    </tr>
+     <tr>
+      <th>Complexity Density</th>
       <th>Complexity divided by Code Lines</th>
+    </tr>
+    <tr>
+      <th>Total Complexity</th>
+      <th>The count of Cognitive Complexity</th>
+    </tr>
+    <tr>
+      <th>Cyclomatic Complexity</th>
+      <th>The count of Cyclomatic (McCabe's) Complexity</th>
     </tr>
   </tbody>
 </table>
