@@ -226,16 +226,16 @@ The Qlty CLI calculates a variety of code quality metrics which are available th
       <th></th>
     </tr>
      <tr>
-      <th>Complexity Density</th>
-      <th>Complexity divided by Code Lines</th>
+      <td>Complexity Density</td>
+      <td>Complexity divided by Code Lines</td>
     </tr>
     <tr>
-      <th>Total Complexity</th>
-      <th>The count of Cognitive Complexity</th>
+      <td>Total Complexity</td>
+      <td>The count of Cognitive Complexity</td>
     </tr>
     <tr>
-      <th>Cyclomatic Complexity</th>
-      <th>The count of Cyclomatic (McCabe's) Complexity</th>
+      <td>Cyclomatic Complexity</td>
+      <td>The count of Cyclomatic (McCabe's) Complexity</td>
     </tr>
   </tbody>
 </table>
