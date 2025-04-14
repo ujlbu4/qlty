@@ -336,34 +336,6 @@ The Qlty CLI calculates a variety of code quality metrics which are available th
   </tbody>
 </table>
 
-| Metric | Category | Definition |
-|-|-|-|
-| Duplication Density | Duplication | Duplicated Lines divided by Code Lines |
-| Duplicated Lines | Duplication | The number of lines that are duplicated |
-| Duplicated Blocks | Duplication | The number of contiguous spans of duplicated lines |
-| Complexity Density | Complexity | Complexity divided by Code Lines |
-| Complexity | Complexity | The count of Cognitive Complexity |
-| Cyclomatic Complexity | Complexity | The count of Cyclomatic (McCabe's) Complexity |
-| Technical Debt | Maintainability | The estimated amount of time needed to resolve the code smells |
-| Technical Debt Ratio | Maintainability | Technical Debt divided by estimated implementation time |
-| Maintainability Rating | Maintainability | Technical Debt Ratio expressed as a letter rating |
-| Security Issues | Security | Count of security issues |
-| Security Rating | Security | A letter rating based on security issues and their severity level |
-| Covered Lines | Coverage | Count of lines covered by automated tests |
-| Uncovered Lines | Coverage | Count of lines that could be covered but are not |
-| Line Coverage | Coverage | Covered Lines divided by Coverd Lines plus Uncovered Lines |
-| Diff Coverage | Coverage | The Line Coverage of the new and changes lines of a Git diff |
-| Coverage Rating | Coverage | Line Coverage expressed as a letter rating |
-| Classes | Size | Count of classes |
-| Fields | Size | Count of unique fields |
-| Functions | Size | Count of functions or methods |
-| Code Files | Size | Count of programming language files |
-| Lines | Size | Count of all lines including blanks and comments |
-| Lines of Code | Size | Count of lines that are not blank or comments |
-| Comment Lines | Size | Count of comment lines |
-| Comments Density | Size | Comment Lines divided by Lines |
-| Issues Count | Issues | Count of static analysis issues |
-
 Quality metrics are available for C#, Go, Java, JavaScript, Kotlin, PHP, Python, Ruby, Rust, and TypeScript.
 
 ---
