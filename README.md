@@ -202,6 +202,25 @@ The [full list of plugins](https://github.com/qltysh/qlty/tree/main/qlty-plugins
 
 The Qlty CLI calculates a variety of code quality metrics which are available through the `qlty metrics` subcommand and as trends on [Qlty Cloud](https://qlty.sh).
 
+<table>
+  <thead>
+    <tr>
+      <th>FOO</th>
+      <th>BAR</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>FOO</th>
+      <th>BAR</th>
+    </tr>
+    <tr>
+      <td>FOO</td>
+      <td>BAR</td>
+    </tr>
+  </tbody>
+</table>
+
 | Metric | Category | Definition |
 |-|-|-|
 | Duplication Density | Duplication | Duplicated Lines divided by Code Lines |
