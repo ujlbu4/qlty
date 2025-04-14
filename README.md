@@ -204,19 +204,26 @@ The Qlty CLI calculates a variety of code quality metrics which are available th
 
 <table>
   <thead>
-    <tr>
-      <th>FOO</th>
-      <th>BAR</th>
-    </tr>
-  </thead>
   <tbody>
     <tr>
-      <th>FOO</th>
-      <th>BAR</th>
+      <th>Duplication</th>
+      <th></th>
     </tr>
     <tr>
-      <td>FOO</td>
-      <td>BAR</td>
+      <td>Duplication Density</td>
+      <td>Duplicated Lines divided by Code Lines</td>
+    </tr>
+    <tr>
+      <td>Duplicated Lines</td>
+      <td>The number of lines that are duplicated</td>
+    </tr>
+    <tr>
+      <td>Duplication</td>
+      <td>The number of contiguous spans of duplicated lines</td>
+    </tr>
+    <tr>
+      <th>Complexity</th>
+      <th>Complexity divided by Code Lines</th>
     </tr>
   </tbody>
 </table>
