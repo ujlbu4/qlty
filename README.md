@@ -258,6 +258,10 @@ The Qlty CLI calculates a variety of code quality metrics which are available th
       <td>Technical Debt Ratio expressed as a letter rating</td>
     </tr>
     <tr>
+      <td>LCOM</td>
+      <td>Lack of cohehsion in methods (LCOM4)</td>
+    </tr>
+    <tr>
       <th>Security</th>
       <th></th>
     </tr>
