@@ -1,3 +1,4 @@
+use crate::formats::Formats;
 use crate::git::retrieve_commit_metadata;
 use crate::publish::Plan;
 use crate::publish::Settings;
@@ -40,6 +41,7 @@ impl Planner {
             metadata: metadata.clone(),
             report_files: self.compute_report_files()?,
             transformers: self.compute_transformers(&metadata)?,
+            zip_file: self.settings.zip_file,
         })
     }
 
@@ -100,6 +102,20 @@ impl Planner {
     }
 
     fn compute_report_files(&self) -> Result<Vec<ReportFile>> {
+        if self.settings.zip_file {
+            if let Some(path) = self.settings.paths.first() {
+                let file_coverages: Vec<ReportFile> = vec![ReportFile {
+                    path: path.clone(),
+                    format: Formats::Qlty.to_string(),
+                    ..Default::default()
+                }];
+
+                return Ok(file_coverages);
+            } else {
+                return Err(anyhow::anyhow!("No path provided for validation"));
+            }
+        }
+
         let paths = if self.settings.paths.is_empty() {
             self.config.coverage.paths.clone().unwrap_or_default()
         } else {

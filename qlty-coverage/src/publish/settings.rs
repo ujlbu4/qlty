@@ -19,4 +19,6 @@ pub struct Settings {
 
     pub skip_missing_files: bool,
     pub total_parts_count: Option<u32>,
+
+    pub zip_file: bool,
 }

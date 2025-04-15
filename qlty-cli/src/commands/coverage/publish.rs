@@ -113,6 +113,7 @@ impl Publish {
                 paths: self.paths.clone(),
                 skip_missing_files: self.skip_missing_files,
                 total_parts_count: self.total_parts_count,
+                zip_file: false,
             },
         )
         .compute()?;

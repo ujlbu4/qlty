@@ -1,7 +1,7 @@
 args = [
   "coverage",
   "validate",
-  "lcov.info",
+  "coverage.zip",
   "--threshold",
   "40"
 ]

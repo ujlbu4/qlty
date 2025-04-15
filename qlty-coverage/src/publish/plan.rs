@@ -6,4 +6,5 @@ pub struct Plan {
     pub metadata: CoverageMetadata,
     pub report_files: Vec<ReportFile>,
     pub transformers: Vec<Box<dyn Transformer>>,
+    pub zip_file: bool,
 }

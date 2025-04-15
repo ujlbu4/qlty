@@ -33,8 +33,8 @@ pub struct Validate {
     /// If not specified, defaults to 90%.
     pub threshold: Option<f64>,
 
-    // Paths to coverage reports
-    pub paths: Vec<String>,
+    // Path to zip file
+    pub path: String,
 }
 
 #[derive(Debug, Clone, Serialize, Default, PartialEq)]
@@ -64,7 +64,8 @@ impl Validate {
                 add_prefix: self.add_prefix.clone(),
                 strip_prefix: self.strip_prefix.clone(),
                 report_format: self.report_format,
-                paths: self.paths.clone(),
+                paths: vec![self.path.clone()],
+                zip_file: true,
                 ..Default::default()
             },
         )
