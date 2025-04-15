@@ -1,6 +1,8 @@
 use anyhow::Result;
 use qlty_analysis::utils::fs::path_to_string;
-use qlty_analysis::workspace_entries::{IgnoreGroupsMatcher, TargetMode};
+use qlty_analysis::workspace_entries::{
+    IgnoreGroupsMatcher, PluginSpecificIgnoreMatcher, TargetMode,
+};
 use qlty_analysis::{
     git::GitDiff, workspace_entries::AndMatcher, FileMatcher, GlobsMatcher, PrefixMatcher,
     WorkspaceEntryFinder, WorkspaceEntryMatcher, WorkspaceEntrySource,
@@ -11,7 +13,10 @@ use qlty_config::config::issue_transformer::{IssueTransformer, NullIssueTransfor
 use qlty_config::config::Ignore;
 use qlty_config::{FileType, Workspace};
 use std::sync::Arc;
-use std::{collections::HashMap, path::PathBuf};
+use std::{
+    collections::{HashMap, HashSet},
+    path::PathBuf,
+};
 
 #[derive(Debug, Default, Clone)]
 pub struct PluginWorkspaceEntryFinderBuilder {
@@ -100,6 +105,30 @@ impl PluginWorkspaceEntryFinderBuilder {
         let ignore_groups = IgnoreGroup::build_from_ignores(&ignores_without_metadata);
 
         matchers.push(Box::new(IgnoreGroupsMatcher::new(ignore_groups)));
+
+        let all_ignored_plugins: HashSet<String> = self
+            .ignores
+            .iter()
+            .flat_map(|i| i.plugins.clone())
+            .collect();
+
+        for plugin_name in all_ignored_plugins {
+            let plugin_specific_ignores = self
+                .ignores
+                .iter()
+                .filter(|i| i.plugins.contains(&plugin_name))
+                .cloned()
+                .collect::<Vec<_>>();
+
+            if !plugin_specific_ignores.is_empty() {
+                matchers.push(Box::new(PluginSpecificIgnoreMatcher::new(
+                    plugin_name.clone(),
+                    plugin_specific_ignores,
+                    self.root.clone(),
+                )));
+            }
+        }
+
         Ok(Box::new(AndMatcher::new(matchers)))
     }
 

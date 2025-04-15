@@ -1,0 +1,12 @@
+config_version = "0"
+
+[[source]]
+name = "default"
+default = true
+
+[[plugin]]
+name = "prettier"
+
+[[ignore]]
+plugins = ["prettier"]
+file_patterns = ["*.md"]
