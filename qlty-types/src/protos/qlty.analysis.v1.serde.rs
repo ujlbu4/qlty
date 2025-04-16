@@ -361,6 +361,7 @@ impl serde::Serialize for ExitResult {
             Self::KnownError => "EXIT_RESULT_KNOWN_ERROR",
             Self::UnknownError => "EXIT_RESULT_UNKNOWN_ERROR",
             Self::NoIssues => "EXIT_RESULT_NO_ISSUES",
+            Self::OutputMissingError => "EXIT_RESULT_OUTPUT_MISSING_ERROR",
         };
         serializer.serialize_str(variant)
     }
@@ -377,6 +378,7 @@ impl<'de> serde::Deserialize<'de> for ExitResult {
             "EXIT_RESULT_KNOWN_ERROR",
             "EXIT_RESULT_UNKNOWN_ERROR",
             "EXIT_RESULT_NO_ISSUES",
+            "EXIT_RESULT_OUTPUT_MISSING_ERROR",
         ];
 
         struct GeneratedVisitor;
@@ -422,6 +424,7 @@ impl<'de> serde::Deserialize<'de> for ExitResult {
                     "EXIT_RESULT_KNOWN_ERROR" => Ok(ExitResult::KnownError),
                     "EXIT_RESULT_UNKNOWN_ERROR" => Ok(ExitResult::UnknownError),
                     "EXIT_RESULT_NO_ISSUES" => Ok(ExitResult::NoIssues),
+                    "EXIT_RESULT_OUTPUT_MISSING_ERROR" => Ok(ExitResult::OutputMissingError),
                     _ => Err(serde::de::Error::unknown_variant(value, FIELDS)),
                 }
             }
