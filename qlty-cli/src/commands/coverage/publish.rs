@@ -1,3 +1,4 @@
+use crate::commands::coverage::Validate;
 use crate::{CommandError, CommandSuccess};
 use anyhow::{bail, Result};
 use clap::Args;
@@ -12,7 +13,7 @@ use qlty_coverage::eprintln_unless;
 use qlty_coverage::formats::Formats;
 use qlty_coverage::print::{print_report_as_json, print_report_as_text};
 use qlty_coverage::publish::{Plan, Planner, Processor, Reader, Report, Settings, Upload};
-use qlty_coverage::validate::{ValidationResult, ValidationStatus};
+use qlty_coverage::validate::ValidationResult;
 use std::path::PathBuf;
 use std::time::Instant;
 use tracing::debug;
@@ -169,18 +170,10 @@ impl Publish {
                 None,
             )?;
 
-            match validation_result.status {
-                ValidationStatus::Valid => {},
-                ValidationStatus::Invalid => return Err(CommandError::CoverageValidation {
-                    message: format!(
-                        "Only {}% of the files are present on the filesystem. Threshold is set to {}%",
-                        validation_result.coverage_percentage, validation_result.threshold
-                    ),
-                }),
-                ValidationStatus::NoCoverageData => return Err(CommandError::CoverageValidation {
-                    message: "No coverage data found".to_string(),
-                }),
-            };
+            match Validate::handle_validation_result(validation_result) {
+                Ok(_) => {}
+                Err(err) => return Err(err),
+            }
         }
 
         if self.dry_run {

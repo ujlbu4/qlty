@@ -27,8 +27,17 @@ impl Validate {
             println!("{}", serde_json::to_string_pretty(&validation_result)?);
         }
 
+        match Self::handle_validation_result(validation_result) {
+            Ok(_) => CommandSuccess::ok(),
+            Err(err) => Err(err),
+        }
+    }
+
+    pub fn handle_validation_result(
+        validation_result: ValidationResult,
+    ) -> Result<(), CommandError> {
         match validation_result.status {
-            ValidationStatus::Valid => CommandSuccess::ok(),
+            ValidationStatus::Valid => Ok(()),
             ValidationStatus::Invalid => Err(CommandError::CoverageValidation {
                 message: format!(
                     "Only {}% of the files are present on the filesystem. Threshold is set to {}%",
