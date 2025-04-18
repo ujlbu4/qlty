@@ -27,26 +27,28 @@ impl Validate {
             println!("{}", serde_json::to_string_pretty(&validation_result)?);
         }
 
-        match Self::handle_validation_result(validation_result) {
-            Ok(_) => CommandSuccess::ok(),
-            Err(err) => Err(err),
+        match validation_result.status {
+            ValidationStatus::Valid => CommandSuccess::ok(),
+            _ => Err(validation_result.into()),
         }
     }
+}
 
-    pub fn handle_validation_result(
-        validation_result: ValidationResult,
-    ) -> Result<(), CommandError> {
-        match validation_result.status {
-            ValidationStatus::Valid => Ok(()),
-            ValidationStatus::Invalid => Err(CommandError::CoverageValidation {
+impl From<ValidationResult> for CommandError {
+    fn from(result: ValidationResult) -> Self {
+        match result.status {
+            ValidationStatus::Valid => {
+                panic!("Cannot convert Valid status into CommandError");
+            }
+            ValidationStatus::Invalid => CommandError::CoverageValidation {
                 message: format!(
                     "Only {}% of the files are present on the filesystem. Threshold is set to {}%",
-                    validation_result.coverage_percentage, validation_result.threshold
+                    result.coverage_percentage, result.threshold,
                 ),
-            }),
-            ValidationStatus::NoCoverageData => Err(CommandError::CoverageValidation {
+            },
+            ValidationStatus::NoCoverageData => CommandError::CoverageValidation {
                 message: "No coverage data found".to_string(),
-            }),
+            },
         }
     }
 }

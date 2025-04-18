@@ -1,4 +1,3 @@
-use crate::commands::coverage::Validate;
 use crate::{CommandError, CommandSuccess};
 use anyhow::{bail, Result};
 use clap::Args;
@@ -13,7 +12,7 @@ use qlty_coverage::eprintln_unless;
 use qlty_coverage::formats::Formats;
 use qlty_coverage::print::{print_report_as_json, print_report_as_text};
 use qlty_coverage::publish::{Plan, Planner, Processor, Reader, Report, Settings, Upload};
-use qlty_coverage::validate::ValidationResult;
+use qlty_coverage::validate::{ValidationResult, ValidationStatus};
 use std::path::PathBuf;
 use std::time::Instant;
 use tracing::debug;
@@ -170,9 +169,9 @@ impl Publish {
                 None,
             )?;
 
-            match Validate::handle_validation_result(validation_result) {
-                Ok(_) => {}
-                Err(err) => return Err(err),
+            match validation_result.status {
+                ValidationStatus::Valid => {}
+                _ => return Err(validation_result.into()),
             }
         }
 
