@@ -2,7 +2,7 @@ args = [
   "coverage",
   "validate",
   "coverage.zip",
-  "--threshold",
+  "--path-threshold",
   "40",
   "--json"
 ]

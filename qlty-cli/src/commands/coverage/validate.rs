@@ -9,7 +9,7 @@ pub struct Validate {
     #[arg(long)]
     /// The minimum percentage of coverage report files to match the file system for validation to succeed.
     /// If not specified, defaults to 90%.
-    pub threshold: Option<f64>,
+    pub path_threshold: Option<f64>,
 
     // Path to zip file
     pub path: String,
@@ -21,7 +21,7 @@ pub struct Validate {
 
 impl Validate {
     pub fn execute(&self, _args: &crate::Arguments) -> Result<CommandSuccess, CommandError> {
-        let validation_result = ValidationResult::compute(&self.path, self.threshold)?;
+        let validation_result = ValidationResult::compute(&self.path, self.path_threshold)?;
 
         if self.json {
             println!("{}", serde_json::to_string_pretty(&validation_result)?);
