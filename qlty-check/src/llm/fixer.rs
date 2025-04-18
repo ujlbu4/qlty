@@ -44,14 +44,17 @@ impl IssueTransformer for Fixer {
             .cloned()
             .into_group_map_by(|issue| issue.path())
             .iter()
-            .map(|(path, issues)| {
-                if let Some(path) = path {
-                    issues
-                        .chunks(MAX_BATCH_SIZE)
-                        .flat_map(|chunk| self.fix_issue(path, chunk))
-                        .collect_vec()
-                } else {
-                    issues.clone()
+            .map(|(path_opt, issues)| {
+                match path_opt {
+                    Some(path) => {
+                        issues
+                            .chunks(MAX_BATCH_SIZE)
+                            .flat_map(|chunk| self.fix_issue(path, chunk))
+                            .collect_vec()
+                    },
+                    None => {
+                        issues.clone()
+                    }
                 }
             })
             .collect_vec()
