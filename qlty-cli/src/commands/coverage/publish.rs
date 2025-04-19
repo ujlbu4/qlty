@@ -13,6 +13,7 @@ use qlty_coverage::formats::Formats;
 use qlty_coverage::print::{print_report_as_json, print_report_as_text};
 use qlty_coverage::publish::{Plan, Planner, Processor, Reader, Report, Settings, Upload};
 use regex::Regex;
+use std::collections::HashSet;
 use std::io::Write as _;
 use std::path::PathBuf;
 use std::time::Instant;
@@ -77,6 +78,10 @@ pub struct Publish {
     /// Print coverage
     pub print: bool,
 
+    #[arg(long)]
+    /// Verbose
+    pub verbose: bool,
+
     #[arg(long, hide = true, requires = "print")]
     /// JSON output
     pub json: bool,
@@ -134,27 +139,21 @@ impl Publish {
         self.print_coverage_files(&plan);
 
         let results = Reader::new(&plan).read()?;
-        let total_unique_file_coverages_paths_count = results
+        let original_paths = results
             .file_coverages
             .iter()
             .map(|f| f.path.clone())
-            .collect::<std::collections::HashSet<_>>()
-            .len();
+            .collect::<std::collections::HashSet<_>>();
 
         let mut report = Processor::new(&plan, results).compute()?;
 
-        let processed_unique_file_coverages_paths_count = report
+        let processed_paths = report
             .file_coverages
             .iter()
             .map(|f| f.path.clone())
-            .collect::<std::collections::HashSet<_>>()
-            .len();
+            .collect::<std::collections::HashSet<_>>();
 
-        self.print_coverage_data(
-            &report,
-            total_unique_file_coverages_paths_count,
-            processed_unique_file_coverages_paths_count,
-        );
+        self.print_coverage_data(&report, original_paths, processed_paths);
 
         if self.print {
             self.show_report(&report)?;
@@ -203,14 +202,20 @@ impl Publish {
 
     fn print_settings(&self) {
         self.print_section_header(" SETTINGS ");
-        let mut printed_settings = false;
+
+        eprintln_unless!(
+            self.quiet,
+            "    cwd: {}",
+            std::env::current_dir()
+                .unwrap_or(PathBuf::from("ERROR"))
+                .to_string_lossy()
+        );
+
         if self.dry_run {
             eprintln_unless!(self.quiet, "    dry-run: {}", self.dry_run);
-            printed_settings = true;
         }
         if let Some(report_format) = &self.report_format {
             eprintln_unless!(self.quiet, "    report-format: {}", report_format);
-            printed_settings = true;
         }
         if let Some(output_dir) = &self.output_dir {
             eprintln_unless!(
@@ -218,19 +223,15 @@ impl Publish {
                 "    output-dir: {}",
                 output_dir.to_string_lossy()
             );
-            printed_settings = true;
         }
         if let Some(tag) = &self.tag {
             eprintln_unless!(self.quiet, "    tag: {}", tag);
-            printed_settings = true;
         }
         if let Some(override_build_id) = &self.override_build_id {
             eprintln_unless!(self.quiet, "    override-build-id: {}", override_build_id);
-            printed_settings = true;
         }
         if let Some(override_branch) = &self.override_branch {
             eprintln_unless!(self.quiet, "    override-branch: {}", override_branch);
-            printed_settings = true;
         }
         if let Some(override_commit_sha) = &self.override_commit_sha {
             eprintln_unless!(
@@ -238,11 +239,9 @@ impl Publish {
                 "    override-commit-sha: {}",
                 override_commit_sha
             );
-            printed_settings = true;
         }
         if let Some(override_pr_number) = &self.override_pr_number {
             eprintln_unless!(self.quiet, "    override-pr-number: {}", override_pr_number);
-            printed_settings = true;
         }
         if let Some(transform_add_prefix) = &self.transform_add_prefix {
             eprintln_unless!(
@@ -250,7 +249,6 @@ impl Publish {
                 "    transform-add-prefix: {}",
                 transform_add_prefix
             );
-            printed_settings = true;
         }
         if let Some(transform_strip_prefix) = &self.transform_strip_prefix {
             eprintln_unless!(
@@ -258,11 +256,9 @@ impl Publish {
                 "    transform-strip-prefix: {}",
                 transform_strip_prefix
             );
-            printed_settings = true;
         }
         if let Some(project) = &self.project {
             eprintln_unless!(self.quiet, "    project: {}", project);
-            printed_settings = true;
         }
 
         if self.skip_missing_files {
@@ -271,17 +267,12 @@ impl Publish {
                 "    skip-missing-files: {}",
                 self.skip_missing_files
             );
-            printed_settings = true;
         }
 
         if let Some(total_parts_count) = self.total_parts_count {
             eprintln_unless!(self.quiet, "    total-parts-count: {}", total_parts_count);
-            printed_settings = true;
         }
 
-        if !printed_settings {
-            eprintln_unless!(self.quiet, "    No settings provided");
-        }
         eprintln_unless!(self.quiet, "");
     }
 
@@ -337,11 +328,22 @@ impl Publish {
         .ok();
 
         for report_file in &plan.report_files {
+            let mut display_path = report_file.path.clone();
+
+            if let Ok(cwd) = std::env::current_dir() {
+                if let Some(relative_path) = pathdiff::diff_paths(display_path.clone(), cwd.clone())
+                {
+                    if let Some(path) = relative_path.to_str() {
+                        display_path = path.to_string();
+                    }
+                }
+            }
+
             if let Ok(size_bytes) = std::fs::metadata(&report_file.path).map(|m| m.len()) {
                 tw.write_all(
                     format!(
                         "    {}\t{}\t{}\n",
-                        report_file.path,
+                        display_path,
                         report_file.format,
                         HumanBytes(size_bytes),
                     )
@@ -370,42 +372,94 @@ impl Publish {
     fn print_coverage_data(
         &self,
         report: &Report,
-        total_unique_file_coverages_paths_count: usize,
-        processed_unique_file_coverages_paths_count: usize,
+        original_paths: HashSet<String>,
+        processed_paths: HashSet<String>,
     ) {
         self.print_section_header(" COVERAGE DATA ");
 
-        if self.skip_missing_files {
+        eprintln_unless!(
+            self.quiet,
+            "{}",
+            style(format!(
+                "    {} unique code file paths",
+                processed_paths.len()
+            ))
+            .dim()
+        );
+
+        let mut missing_files = report.missing_files.clone();
+        missing_files.sort();
+
+        if !missing_files.is_empty() {
+            let missing_percent =
+                (missing_files.len() as f32 / original_paths.len() as f32) * 100.0;
+
             eprintln_unless!(
                 self.quiet,
-                "{}",
+                "    {}",
                 style(format!(
-                    "    {} unique code file paths",
-                    total_unique_file_coverages_paths_count
+                    "{} paths are missing on disk ({:.1}%)",
+                    missing_files.len(),
+                    missing_percent
                 ))
-                .dim()
+                .bold()
             );
-            let missing = total_unique_file_coverages_paths_count
-                - processed_unique_file_coverages_paths_count;
 
-            if missing > 0 {
+            let (paths_to_show, show_all) = if self.verbose {
+                (missing_files.len(), true)
+            } else {
+                (std::cmp::min(20, missing_files.len()), false)
+            };
+
+            eprintln_unless!(
+                self.quiet,
+                "\n    {}\n",
+                style("Missing code files:").bold().yellow()
+            );
+
+            for path in missing_files.iter().take(paths_to_show) {
+                eprintln_unless!(self.quiet, "      {}", style(path.to_string()).yellow());
+            }
+
+            if !show_all && paths_to_show < missing_files.len() {
+                let remaining = missing_files.len() - paths_to_show;
                 eprintln_unless!(
                     self.quiet,
-                    "    {}",
-                    style(format!("Skipping {} missing paths", missing)).bold()
+                    "      {} {}",
+                    style(format!("... and {} more", remaining)).dim().yellow(),
+                    style("(Use --verbose to see all)").dim()
+                );
+            }
+
+            eprintln_unless!(self.quiet, "");
+
+            if missing_percent > 10.0 {
+                eprintln_unless!(
+                    self.quiet,
+                    "    {} {}",
+                    style("TIP:").bold().yellow(),
+                    style("Consider using add-prefix or strip-prefix to fix paths").bold()
                 );
             } else {
                 eprintln_unless!(
                     self.quiet,
-                    "    {}",
-                    style("All paths were found on disk, skipping none.").dim()
-                );
+                    "    {} Consider excluding these paths with your code coverage tool.",
+                    style("TIP:").bold()
+                )
             }
+
+            eprintln_unless!(
+                self.quiet,
+                "    {}",
+                style("https://qlty.sh/d/coverage-path-fixing").dim()
+            );
+
+            eprintln_unless!(self.quiet, "");
         } else {
             eprintln_unless!(
                 self.quiet,
-                "    {} unique code file paths",
-                processed_unique_file_coverages_paths_count
+                "    {}",
+                style("All code files in the coverage data were found on disk.").dim()
             );
         }
 
@@ -445,23 +499,12 @@ impl Publish {
                 uncovered_lines,
                 width = max_length
             );
-
-            // Make the separator line match the width of the numbers
-            let separator = "-".repeat(max_length + 26);
-            eprintln_unless!(self.quiet, "    {}", separator);
-
-            eprintln_unless!(
-                self.quiet,
-                "    Total Lines:        {:>width$}",
-                total_lines,
-                width = max_length
-            );
             eprintln_unless!(self.quiet, "");
             eprintln_unless!(
                 self.quiet,
                 "    {}",
                 style(format!(
-                    "Coverage            {:.1}%",
+                    "Line Coverage        {:.2}%",
                     report.coverage_metrics.coverage_percentage
                 ))
                 .bold()
@@ -474,7 +517,7 @@ impl Publish {
         self.print_section_header(" EXPORTING... ");
         eprintln_unless!(
             self.quiet,
-            "    Exported: {}",
+            "    Exported: {}/coverage.zip",
             export_path
                 .as_ref()
                 .unwrap_or(&PathBuf::from("ERROR"))
@@ -638,6 +681,7 @@ mod tests {
             skip_missing_files: false,
             total_parts_count: None,
             summary: false,
+            verbose: false,
         }
     }
 
