@@ -15,7 +15,7 @@
     "tag": "rails",
     "uploadedAt": "[..]",
     "cliVersion": "[..]",
-    "publishCommand": "[..]qlty[..] coverage publish --dry-run --print --json --override-branch test-branch-1 --override-commit-sha 2ca1bc45a94e37c8dbae6fd9e19fc069ba64bd67 --override-pr-number 99 --transform-add-prefix rails/ --tag rails lcov.info"
+    "publishCommand": "[..]qlty[..] coverage publish --dry-run --print --json --override-branch test-branch-1 --override-commit-sha 2ca1bc45a94e37c8dbae6fd9e19fc069ba64bd67 --override-pr-number 99 --transform-add-prefix rails/ --tag rails --summary lcov.info"
   },
   "report_files": [
     {
@@ -95,5 +95,11 @@
       "branch": "test-branch-1",
       "pullRequestNumber": "99"
     }
-  ]
+  ],
+  "coverage_metrics": {
+    "covered_lines": 24,
+    "uncovered_lines": 2,
+    "total_lines": 26,
+    "coverage_percentage": 92.3076923076923
+  }
 }

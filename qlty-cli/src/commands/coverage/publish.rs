@@ -4,6 +4,7 @@ use clap::Args;
 use console::style;
 use git2::Repository;
 use indicatif::HumanBytes;
+use num_format::{Locale, ToFormattedString as _};
 use qlty_config::version::LONG_VERSION;
 use qlty_config::{QltyConfig, Workspace};
 use qlty_coverage::ci::{GitHub, CI};
@@ -11,11 +12,16 @@ use qlty_coverage::eprintln_unless;
 use qlty_coverage::formats::Formats;
 use qlty_coverage::print::{print_report_as_json, print_report_as_text};
 use qlty_coverage::publish::{Plan, Planner, Processor, Reader, Report, Settings, Upload};
+use regex::Regex;
+use std::io::Write as _;
 use std::path::PathBuf;
 use std::time::Instant;
+use tabwriter::TabWriter;
 use tracing::debug;
 
 const COVERAGE_TOKEN_WORKSPACE_PREFIX: &str = "qltcw_";
+const COVERAGE_TOKEN_PROJECT_PREFIX: &str = "qltcp_";
+const OIDC_REGEX: &str = r"^([a-zA-Z0-9\-_]+)\.([a-zA-Z0-9\-_]+)\.([a-zA-Z0-9\-_]+)$";
 
 #[derive(Debug, Args)]
 pub struct Publish {
@@ -75,11 +81,12 @@ pub struct Publish {
     /// JSON output
     pub json: bool,
 
+    #[arg(long, hide = true)]
+    /// Print a summary
+    pub summary: bool,
+
     #[clap(long, short)]
     pub quiet: bool,
-
-    // Paths to coverage reports
-    pub paths: Vec<String>,
 
     #[arg(long, hide = true)]
     pub skip_missing_files: bool,
@@ -88,17 +95,21 @@ pub struct Publish {
     /// The total number of parts that qlty cloud should expect. Each call to qlty publish will upload one part.
     /// (The total parts count is per coverage tag e.g. if you have 2 tags each with 3 parts, you should set this to 3)
     pub total_parts_count: Option<u32>,
+
+    // Paths to coverage reports
+    pub paths: Vec<String>,
 }
 
 impl Publish {
     // TODO: Use CommandSuccess and CommandError, which is not straight forward since those types aren't available here.
     pub fn execute(&self, _args: &crate::Arguments) -> Result<CommandSuccess, CommandError> {
         self.print_initial_messages();
+        self.print_settings();
+
         self.validate_options()?;
 
         let token = self.load_auth_token()?;
 
-        eprintln_unless!(self.quiet, "  Retrieving CI metadata...");
         let plan = Planner::new(
             &Self::load_config(),
             &Settings {
@@ -119,86 +130,50 @@ impl Publish {
 
         self.validate_plan(&plan)?;
 
-        eprintln_unless!(
-            self.quiet,
-            "{}",
-            style(format!(
-                "  → {} CI commit {:?} on branch {:?}",
-                plan.metadata.ci, plan.metadata.commit_sha, plan.metadata.branch
-            ))
-            .dim()
-        );
-        eprintln_unless!(self.quiet, "");
-        eprintln_unless!(self.quiet, "  Reading code coverage data...");
+        self.print_metadata(&plan);
+        self.print_coverage_files(&plan);
 
         let results = Reader::new(&plan).read()?;
+        let total_unique_file_coverages_paths_count = results
+            .file_coverages
+            .iter()
+            .map(|f| f.path.clone())
+            .collect::<std::collections::HashSet<_>>()
+            .len();
+
         let mut report = Processor::new(&plan, results).compute()?;
-        eprintln_unless!(
-            self.quiet,
-            "{}",
-            style(format!(
-                "  → Found {} files with code coverage data",
-                report.report_files.len()
-            ))
-            .dim()
+
+        let processed_unique_file_coverages_paths_count = report
+            .file_coverages
+            .iter()
+            .map(|f| f.path.clone())
+            .collect::<std::collections::HashSet<_>>()
+            .len();
+
+        self.print_coverage_data(
+            &report,
+            total_unique_file_coverages_paths_count,
+            processed_unique_file_coverages_paths_count,
         );
-        eprintln_unless!(self.quiet, "");
 
         if self.print {
             self.show_report(&report)?;
         }
 
+        let export = report.export_to(self.output_dir.clone())?;
+        self.print_export_status(&export.to);
+
         if self.dry_run {
-            eprintln_unless!(self.quiet, "  Exporting code coverage data...");
-            let export = report.export_to(self.output_dir.clone())?;
-            eprintln_unless!(
-                self.quiet,
-                "{}",
-                style(format!("  → Exported to {:?}", export.to.as_ref().unwrap())).dim()
-            );
             return CommandSuccess::ok();
         }
 
-        eprintln_unless!(self.quiet, "  Authenticating with Qlty...");
+        self.print_authentication_info(&token);
 
         let upload = Upload::prepare(&token, &mut report)?;
-
-        eprintln_unless!(self.quiet, "  Exporting code coverage data...");
-        let export = report.export_to(self.output_dir.clone())?;
-
-        eprintln_unless!(
-            self.quiet,
-            "{}",
-            style(format!("  → Exported to {:?}", export.to.as_ref().unwrap())).dim()
-        );
-        eprintln_unless!(self.quiet, "");
-
-        eprintln_unless!(
-            self.quiet,
-            "{}",
-            style(format!("  → Using coverage token {:?}", token)).dim()
-        );
-        eprintln_unless!(self.quiet, "");
-
-        eprintln_unless!(self.quiet, "  Uploading coverage data...");
-
         let timer = Instant::now();
         upload.upload(&export)?;
-
         let bytes = export.total_size_bytes()?;
-        eprintln_unless!(
-            self.quiet,
-            "{}",
-            style(format!(
-                "  → Uploaded {} in {:.2}s!",
-                HumanBytes(bytes),
-                timer.elapsed().as_secs_f32()
-            ))
-            .dim()
-        );
-
-        eprintln_unless!(self.quiet, "");
-        eprintln_unless!(self.quiet, "View upload at https://qlty.sh");
+        self.print_upload_complete(bytes, timer.elapsed().as_secs_f32(), &upload.url);
 
         CommandSuccess::ok()
     }
@@ -218,6 +193,332 @@ impl Publish {
     fn print_initial_messages(&self) {
         eprintln_unless!(self.quiet, "qlty {}", LONG_VERSION.as_str());
         eprintln_unless!(self.quiet, "{}", style("https://qlty.sh/d/coverage").dim());
+        eprintln_unless!(self.quiet, "");
+    }
+
+    fn print_section_header(&self, title: &str) {
+        eprintln_unless!(self.quiet, "{}", style(title).bold().reverse());
+        eprintln_unless!(self.quiet, "");
+    }
+
+    fn print_settings(&self) {
+        self.print_section_header(" SETTINGS ");
+        let mut printed_settings = false;
+        if self.dry_run {
+            eprintln_unless!(self.quiet, "    dry-run: {}", self.dry_run);
+            printed_settings = true;
+        }
+        if let Some(report_format) = &self.report_format {
+            eprintln_unless!(self.quiet, "    report-format: {}", report_format);
+            printed_settings = true;
+        }
+        if let Some(output_dir) = &self.output_dir {
+            eprintln_unless!(
+                self.quiet,
+                "    output-dir: {}",
+                output_dir.to_string_lossy()
+            );
+            printed_settings = true;
+        }
+        if let Some(tag) = &self.tag {
+            eprintln_unless!(self.quiet, "    tag: {}", tag);
+            printed_settings = true;
+        }
+        if let Some(override_build_id) = &self.override_build_id {
+            eprintln_unless!(self.quiet, "    override-build-id: {}", override_build_id);
+            printed_settings = true;
+        }
+        if let Some(override_branch) = &self.override_branch {
+            eprintln_unless!(self.quiet, "    override-branch: {}", override_branch);
+            printed_settings = true;
+        }
+        if let Some(override_commit_sha) = &self.override_commit_sha {
+            eprintln_unless!(
+                self.quiet,
+                "    override-commit-sha: {}",
+                override_commit_sha
+            );
+            printed_settings = true;
+        }
+        if let Some(override_pr_number) = &self.override_pr_number {
+            eprintln_unless!(self.quiet, "    override-pr-number: {}", override_pr_number);
+            printed_settings = true;
+        }
+        if let Some(transform_add_prefix) = &self.transform_add_prefix {
+            eprintln_unless!(
+                self.quiet,
+                "    transform-add-prefix: {}",
+                transform_add_prefix
+            );
+            printed_settings = true;
+        }
+        if let Some(transform_strip_prefix) = &self.transform_strip_prefix {
+            eprintln_unless!(
+                self.quiet,
+                "    transform-strip-prefix: {}",
+                transform_strip_prefix
+            );
+            printed_settings = true;
+        }
+        if let Some(project) = &self.project {
+            eprintln_unless!(self.quiet, "    project: {}", project);
+            printed_settings = true;
+        }
+
+        if self.skip_missing_files {
+            eprintln_unless!(
+                self.quiet,
+                "    skip-missing-files: {}",
+                self.skip_missing_files
+            );
+            printed_settings = true;
+        }
+
+        if let Some(total_parts_count) = self.total_parts_count {
+            eprintln_unless!(self.quiet, "    total-parts-count: {}", total_parts_count);
+            printed_settings = true;
+        }
+
+        if !printed_settings {
+            eprintln_unless!(self.quiet, "    No settings provided");
+        }
+        eprintln_unless!(self.quiet, "");
+    }
+
+    fn print_metadata(&self, plan: &Plan) {
+        self.print_section_header(" METADATA ");
+        if !plan.metadata.ci.is_empty() {
+            eprintln_unless!(self.quiet, "    CI: {}", plan.metadata.ci);
+        }
+
+        eprintln_unless!(self.quiet, "    Commit: {}", plan.metadata.commit_sha);
+        if !plan.metadata.pull_request_number.is_empty() {
+            eprintln_unless!(
+                self.quiet,
+                "    Pull Request: #{}",
+                plan.metadata.pull_request_number
+            );
+        }
+
+        if !plan.metadata.branch.is_empty() {
+            eprintln_unless!(self.quiet, "    Branch: {}", plan.metadata.branch);
+        }
+
+        if !plan.metadata.build_id.is_empty() {
+            eprintln_unless!(self.quiet, "    Build ID: {}", plan.metadata.build_id);
+        }
+
+        eprintln_unless!(self.quiet, "");
+    }
+
+    fn print_coverage_files(&self, plan: &Plan) {
+        eprintln_unless!(
+            self.quiet,
+            "{}{}{}",
+            style(" COVERAGE FILES: ").bold().reverse(),
+            style(plan.report_files.len().to_formatted_string(&Locale::en))
+                .bold()
+                .reverse(),
+            style(" ").bold().reverse()
+        );
+        eprintln_unless!(self.quiet, "");
+
+        let mut tw = TabWriter::new(vec![]);
+
+        tw.write_all(
+            format!(
+                "    {}\t{}\t{}\n",
+                style("Coverage File").bold().underlined(),
+                style("Format").bold().underlined(),
+                style("Size").bold().underlined(),
+            )
+            .as_bytes(),
+        )
+        .ok();
+
+        for report_file in &plan.report_files {
+            if let Ok(size_bytes) = std::fs::metadata(&report_file.path).map(|m| m.len()) {
+                tw.write_all(
+                    format!(
+                        "    {}\t{}\t{}\n",
+                        report_file.path,
+                        report_file.format,
+                        HumanBytes(size_bytes),
+                    )
+                    .as_bytes(),
+                )
+                .ok();
+            } else {
+                tw.write_all(
+                    format!(
+                        "    {}\t{}\t{}\n",
+                        report_file.path, report_file.format, "Unknown",
+                    )
+                    .as_bytes(),
+                )
+                .ok();
+            }
+        }
+
+        tw.flush().ok();
+        let written =
+            String::from_utf8(tw.into_inner().unwrap_or_default()).unwrap_or("ERROR".to_string());
+
+        eprintln_unless!(self.quiet, "{}", written);
+    }
+
+    fn print_coverage_data(
+        &self,
+        report: &Report,
+        total_unique_file_coverages_paths_count: usize,
+        processed_unique_file_coverages_paths_count: usize,
+    ) {
+        self.print_section_header(" COVERAGE DATA ");
+
+        if self.skip_missing_files {
+            eprintln_unless!(
+                self.quiet,
+                "{}",
+                style(format!(
+                    "    {} unique code file paths",
+                    total_unique_file_coverages_paths_count
+                ))
+                .dim()
+            );
+            let missing = total_unique_file_coverages_paths_count
+                - processed_unique_file_coverages_paths_count;
+
+            if missing > 0 {
+                eprintln_unless!(
+                    self.quiet,
+                    "    {}",
+                    style(format!("Skipping {} missing paths", missing)).bold()
+                );
+            } else {
+                eprintln_unless!(
+                    self.quiet,
+                    "    {}",
+                    style("All paths were found on disk, skipping none.").dim()
+                );
+            }
+        } else {
+            eprintln_unless!(
+                self.quiet,
+                "    {} unique code file paths",
+                processed_unique_file_coverages_paths_count
+            );
+        }
+
+        eprintln_unless!(self.quiet, "");
+
+        if self.summary {
+            // Get formatted numbers first
+            let covered_lines = report
+                .coverage_metrics
+                .covered_lines
+                .to_formatted_string(&Locale::en);
+            let uncovered_lines = report
+                .coverage_metrics
+                .uncovered_lines
+                .to_formatted_string(&Locale::en);
+            let total_lines = report
+                .coverage_metrics
+                .total_lines
+                .to_formatted_string(&Locale::en);
+
+            // Find the longest number for consistent spacing
+            let max_length = [&covered_lines, &uncovered_lines, &total_lines]
+                .iter()
+                .map(|s| s.len())
+                .max()
+                .unwrap_or(0);
+
+            eprintln_unless!(
+                self.quiet,
+                "    Covered Lines:      {:>width$}",
+                covered_lines,
+                width = max_length
+            );
+            eprintln_unless!(
+                self.quiet,
+                "    Uncovered Lines:    {:>width$}",
+                uncovered_lines,
+                width = max_length
+            );
+
+            // Make the separator line match the width of the numbers
+            let separator = "-".repeat(max_length + 26);
+            eprintln_unless!(self.quiet, "    {}", separator);
+
+            eprintln_unless!(
+                self.quiet,
+                "    Total Lines:        {:>width$}",
+                total_lines,
+                width = max_length
+            );
+            eprintln_unless!(self.quiet, "");
+            eprintln_unless!(
+                self.quiet,
+                "    {}",
+                style(format!(
+                    "Coverage            {:.1}%",
+                    report.coverage_metrics.coverage_percentage
+                ))
+                .bold()
+            );
+            eprintln_unless!(self.quiet, "");
+        }
+    }
+
+    fn print_export_status(&self, export_path: &Option<PathBuf>) {
+        self.print_section_header(" EXPORTING... ");
+        eprintln_unless!(
+            self.quiet,
+            "    Exported: {}",
+            export_path
+                .as_ref()
+                .unwrap_or(&PathBuf::from("ERROR"))
+                .to_string_lossy()
+        );
+        eprintln_unless!(self.quiet, "");
+    }
+
+    fn print_authentication_info(&self, token: &str) {
+        self.print_section_header(" AUTHENTICATING... ");
+        let token_type = if token.starts_with(COVERAGE_TOKEN_WORKSPACE_PREFIX) {
+            "Workspace Token"
+        } else if token.starts_with(COVERAGE_TOKEN_PROJECT_PREFIX) {
+            "Project Token"
+        } else if let Ok(oidc_regex) = Regex::new(OIDC_REGEX) {
+            if oidc_regex.is_match(token) {
+                "OIDC"
+            } else {
+                "Unknown"
+            }
+        } else {
+            "ERROR"
+        };
+        eprintln_unless!(self.quiet, "    Method: {}", token_type);
+        eprintln_unless!(self.quiet, "    Token: {}", token);
+        eprintln_unless!(self.quiet, "");
+    }
+
+    fn print_upload_complete(&self, bytes: u64, elapsed_seconds: f32, url: &str) {
+        eprintln_unless!(
+            self.quiet,
+            "    Uploaded {} in {:.2}s!",
+            HumanBytes(bytes),
+            elapsed_seconds
+        );
+
+        if !url.is_empty() {
+            eprintln_unless!(
+                self.quiet,
+                "    {}",
+                style(format!("View report: {}", url)).bold()
+            );
+        }
+
         eprintln_unless!(self.quiet, "");
     }
 
@@ -336,6 +637,7 @@ mod tests {
             paths: vec![],
             skip_missing_files: false,
             total_parts_count: None,
+            summary: false,
         }
     }
 
