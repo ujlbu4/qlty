@@ -13,7 +13,6 @@ use qlty_coverage::formats::Formats;
 use qlty_coverage::print::{print_report_as_json, print_report_as_text};
 use qlty_coverage::publish::{Plan, Planner, Processor, Reader, Report, Settings, Upload};
 use regex::Regex;
-use std::collections::HashSet;
 use std::io::Write as _;
 use std::path::PathBuf;
 use std::time::Instant;
@@ -139,21 +138,9 @@ impl Publish {
         self.print_coverage_files(&plan);
 
         let results = Reader::new(&plan).read()?;
-        let original_paths = results
-            .file_coverages
-            .iter()
-            .map(|f| f.path.clone())
-            .collect::<std::collections::HashSet<_>>();
-
         let mut report = Processor::new(&plan, results).compute()?;
 
-        let processed_paths = report
-            .file_coverages
-            .iter()
-            .map(|f| f.path.clone())
-            .collect::<std::collections::HashSet<_>>();
-
-        self.print_coverage_data(&report, original_paths, processed_paths);
+        self.print_coverage_data(&report);
 
         if self.print {
             self.show_report(&report)?;
@@ -179,7 +166,9 @@ impl Publish {
 
     fn validate_plan(&self, plan: &Plan) -> Result<()> {
         if plan.metadata.commit_sha.is_empty() {
-            bail!("Unable to determine commit SHA from the environment.\nPlease provide it using --override-commit-sha")
+            bail!(
+                "Unable to determine commit SHA from the environment.\nPlease provide it using --override-commit-sha"
+            )
         }
 
         if plan.report_files.is_empty() {
@@ -369,37 +358,39 @@ impl Publish {
         eprintln_unless!(self.quiet, "{}", written);
     }
 
-    fn print_coverage_data(
-        &self,
-        report: &Report,
-        original_paths: HashSet<String>,
-        processed_paths: HashSet<String>,
-    ) {
+    fn print_coverage_data(&self, report: &Report) {
         self.print_section_header(" COVERAGE DATA ");
+
+        let total_files_count = report.found_files.len() + report.missing_files.len();
 
         eprintln_unless!(
             self.quiet,
-            "{}",
-            style(format!(
-                "    {} unique code file paths",
-                processed_paths.len()
-            ))
-            .dim()
+            "    {} unique code file {}",
+            total_files_count.to_formatted_string(&Locale::en),
+            if total_files_count == 1 {
+                "path"
+            } else {
+                "paths"
+            }
         );
 
-        let mut missing_files = report.missing_files.clone();
+        let mut missing_files = report.missing_files.iter().collect::<Vec<_>>();
         missing_files.sort();
 
         if !missing_files.is_empty() {
-            let missing_percent =
-                (missing_files.len() as f32 / original_paths.len() as f32) * 100.0;
+            let missing_percent = (missing_files.len() as f32 / total_files_count as f32) * 100.0;
 
             eprintln_unless!(
                 self.quiet,
                 "    {}",
                 style(format!(
-                    "{} paths are missing on disk ({:.1}%)",
-                    missing_files.len(),
+                    "{} {} missing on disk ({:.1}%)",
+                    missing_files.len().to_formatted_string(&Locale::en),
+                    if missing_files.len() == 1 {
+                        "path is"
+                    } else {
+                        "paths are"
+                    },
                     missing_percent
                 ))
                 .bold()
@@ -426,7 +417,12 @@ impl Publish {
                 eprintln_unless!(
                     self.quiet,
                     "      {} {}",
-                    style(format!("... and {} more", remaining)).dim().yellow(),
+                    style(format!(
+                        "... and {} more",
+                        remaining.to_formatted_string(&Locale::en)
+                    ))
+                    .dim()
+                    .yellow(),
                     style("(Use --verbose to see all)").dim()
                 );
             }
@@ -467,21 +463,15 @@ impl Publish {
 
         if self.summary {
             // Get formatted numbers first
-            let covered_lines = report
-                .coverage_metrics
-                .covered_lines
-                .to_formatted_string(&Locale::en);
+            let covered_lines = report.totals.covered_lines.to_formatted_string(&Locale::en);
             let uncovered_lines = report
-                .coverage_metrics
+                .totals
                 .uncovered_lines
                 .to_formatted_string(&Locale::en);
-            let total_lines = report
-                .coverage_metrics
-                .total_lines
-                .to_formatted_string(&Locale::en);
+            let omitted_lines = report.totals.omitted_lines.to_formatted_string(&Locale::en);
 
             // Find the longest number for consistent spacing
-            let max_length = [&covered_lines, &uncovered_lines, &total_lines]
+            let max_length = [&covered_lines, &uncovered_lines, &omitted_lines]
                 .iter()
                 .map(|s| s.len())
                 .max()
@@ -499,13 +489,19 @@ impl Publish {
                 uncovered_lines,
                 width = max_length
             );
+            eprintln_unless!(
+                self.quiet,
+                "    Omitted Lines:      {:>width$}",
+                omitted_lines,
+                width = max_length
+            );
             eprintln_unless!(self.quiet, "");
             eprintln_unless!(
                 self.quiet,
                 "    {}",
                 style(format!(
-                    "Line Coverage        {:.2}%",
-                    report.coverage_metrics.coverage_percentage
+                    "Line Coverage:       {:.2}%",
+                    report.totals.coverage_percentage
                 ))
                 .bold()
             );
@@ -600,7 +596,9 @@ impl Publish {
                     Ok(repository) => repository,
                     Err(err) => {
                         debug!("Find repository name: {}", err);
-                        bail!("Could not infer project name from environment, please provide it using --project")
+                        bail!(
+                            "Could not infer project name from environment, please provide it using --project"
+                        )
                     }
                 }
             };

@@ -22,8 +22,8 @@ https://qlty.sh/d/coverage
 
  COVERAGE DATA 
 
-    1 unique code file paths
-    1 paths are missing on disk (50.0%)
+    2 unique code file paths
+    1 path is missing on disk (50.0%)
 
     Missing code files:
 
@@ -35,8 +35,9 @@ https://qlty.sh/d/coverage
 
     Covered Lines:      24
     Uncovered Lines:     2
+    Omitted Lines:      26
 
-    Line Coverage        92.31%
+    Line Coverage:       92.31%
 
  EXPORTING... 
 
