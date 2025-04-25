@@ -23,15 +23,21 @@ const COVERAGE_TOKEN_WORKSPACE_PREFIX: &str = "qltcw_";
 const COVERAGE_TOKEN_PROJECT_PREFIX: &str = "qltcp_";
 const OIDC_REGEX: &str = r"^([a-zA-Z0-9\-_]+)\.([a-zA-Z0-9\-_]+)\.([a-zA-Z0-9\-_]+)$";
 
-#[derive(Debug, Args)]
+#[derive(Debug, Args, Default)]
 pub struct Publish {
     #[clap(long)]
     /// Do not upload the coverage report, only export it to the output directory.
     pub dry_run: bool,
 
-    #[arg(long, value_enum)]
-    /// The format of the coverage report to transform. If not specified, the format will be inferred from the file extension or contents.
+    #[arg(long, value_enum, hide = true)]
+    /// [DEPRECATED, use --format] The format of the coverage report to transform.
+    /// If not specified, the format will be inferred from the file extension or contents.
     pub report_format: Option<Formats>,
+
+    #[arg(long, value_enum)]
+    /// The format of the coverage report to transform.
+    /// If not specified, the format will be inferred from the file extension or contents.
+    pub format: Option<Formats>,
 
     #[arg(long, hide = true)]
     pub output_dir: Option<PathBuf>,
@@ -55,17 +61,27 @@ pub struct Publish {
     /// Override the pull request number from the CI environment
     pub override_pr_number: Option<String>,
 
+    #[arg(long, hide = true)]
+    /// [DEPRECATED, use --add-prefix] The prefix to add to file paths in coverage payloads, to make them match the project's directory structure.
+    pub transform_add_prefix: Option<String>,
+
     #[arg(long)]
     /// The prefix to add to file paths in coverage payloads, to make them match the project's directory structure.
-    pub transform_add_prefix: Option<String>,
+    pub add_prefix: Option<String>,
+
+    #[arg(long, hide = true)]
+    /// [DEPRECATED, use --strip-prefix] The prefix to remove from absolute paths in coverage payloads to make them relative to the project root.
+    /// This is usually the directory in which the tests were run. Defaults to the root of the git repository.
+    pub transform_strip_prefix: Option<String>,
 
     #[arg(long)]
     /// The prefix to remove from absolute paths in coverage payloads to make them relative to the project root.
     /// This is usually the directory in which the tests were run. Defaults to the root of the git repository.
-    pub transform_strip_prefix: Option<String>,
+    pub strip_prefix: Option<String>,
 
     #[arg(long, short)]
-    /// The token to use for authentication when uploading the report. By default, it retrieves the token from the QLTY_COVERAGE_TOKEN environment variable.
+    /// The token to use for authentication when uploading the report.
+    /// By default, it retrieves the token from the QLTY_COVERAGE_TOKEN environment variable.
     pub token: Option<String>,
 
     #[arg(long)]
@@ -104,29 +120,15 @@ impl Publish {
     // TODO: Use CommandSuccess and CommandError, which is not straight forward since those types aren't available here.
     pub fn execute(&self, _args: &crate::Arguments) -> Result<CommandSuccess, CommandError> {
         self.print_initial_messages();
-        self.print_settings();
+        self.print_deprecation_warnings();
 
+        let settings = self.build_settings();
+
+        self.print_settings(&settings);
         self.validate_options()?;
 
         let token = self.load_auth_token()?;
-
-        let plan = Planner::new(
-            &Self::load_config(),
-            &Settings {
-                override_build_id: self.override_build_id.clone(),
-                override_commit_sha: self.override_commit_sha.clone(),
-                override_branch: self.override_branch.clone(),
-                override_pull_request_number: self.override_pr_number.clone(),
-                add_prefix: self.transform_add_prefix.clone(),
-                strip_prefix: self.transform_strip_prefix.clone(),
-                tag: self.tag.clone(),
-                report_format: self.report_format,
-                paths: self.paths.clone(),
-                skip_missing_files: self.skip_missing_files,
-                total_parts_count: self.total_parts_count,
-            },
-        )
-        .compute()?;
+        let plan = Planner::new(&Self::load_config(), &settings).compute()?;
 
         self.validate_plan(&plan)?;
 
@@ -160,6 +162,55 @@ impl Publish {
         CommandSuccess::ok()
     }
 
+    fn build_settings(&self) -> Settings {
+        let format = Self::coalesce_args(&self.format, &self.report_format);
+        let add_prefix = Self::coalesce_args(&self.add_prefix, &self.transform_add_prefix);
+        let strip_prefix = Self::coalesce_args(&self.strip_prefix, &self.transform_strip_prefix);
+
+        Settings {
+            override_build_id: self.override_build_id.clone(),
+            override_commit_sha: self.override_commit_sha.clone(),
+            override_branch: self.override_branch.clone(),
+            override_pull_request_number: self.override_pr_number.clone(),
+            add_prefix,
+            strip_prefix,
+            tag: self.tag.clone(),
+            report_format: format,
+            paths: self.paths.clone(),
+            skip_missing_files: self.skip_missing_files,
+            total_parts_count: self.total_parts_count,
+        }
+    }
+
+    fn print_deprecation_warnings(&self) {
+        if self.report_format.is_some() {
+            eprintln_unless!(
+                self.quiet,
+                "WARNING: --report-format is deprecated, use --format instead\n"
+            );
+        }
+        if self.transform_add_prefix.is_some() {
+            eprintln_unless!(
+                self.quiet,
+                "WARNING: --transform-add-prefix is deprecated, use --add-prefix instead\n"
+            );
+        }
+        if self.transform_strip_prefix.is_some() {
+            eprintln_unless!(
+                self.quiet,
+                "WARNING: --transform-strip-prefix is deprecated, use --strip-prefix instead\n"
+            );
+        }
+    }
+
+    fn coalesce_args<T: Clone>(primary: &Option<T>, fallback: &Option<T>) -> Option<T> {
+        if let Some(val) = primary {
+            Some(val.clone())
+        } else {
+            fallback.clone()
+        }
+    }
+
     fn validate_plan(&self, plan: &Plan) -> Result<()> {
         if plan.metadata.commit_sha.is_empty() {
             bail!(
@@ -185,7 +236,7 @@ impl Publish {
         eprintln_unless!(self.quiet, "");
     }
 
-    fn print_settings(&self) {
+    fn print_settings(&self, settings: &Settings) {
         self.print_section_header(" SETTINGS ");
 
         eprintln_unless!(
@@ -199,8 +250,8 @@ impl Publish {
         if self.dry_run {
             eprintln_unless!(self.quiet, "    dry-run: {}", self.dry_run);
         }
-        if let Some(report_format) = &self.report_format {
-            eprintln_unless!(self.quiet, "    report-format: {}", report_format);
+        if let Some(format) = &settings.report_format {
+            eprintln_unless!(self.quiet, "    format: {}", format);
         }
         if let Some(output_dir) = &self.output_dir {
             eprintln_unless!(
@@ -228,19 +279,11 @@ impl Publish {
         if let Some(override_pr_number) = &self.override_pr_number {
             eprintln_unless!(self.quiet, "    override-pr-number: {}", override_pr_number);
         }
-        if let Some(transform_add_prefix) = &self.transform_add_prefix {
-            eprintln_unless!(
-                self.quiet,
-                "    transform-add-prefix: {}",
-                transform_add_prefix
-            );
+        if let Some(add_prefix) = &settings.add_prefix {
+            eprintln_unless!(self.quiet, "    add-prefix: {}", add_prefix);
         }
-        if let Some(transform_strip_prefix) = &self.transform_strip_prefix {
-            eprintln_unless!(
-                self.quiet,
-                "    transform-strip-prefix: {}",
-                transform_strip_prefix
-            );
+        if let Some(strip_prefix) = &settings.strip_prefix {
+            eprintln_unless!(self.quiet, "    strip-prefix: {}", strip_prefix);
         }
         if let Some(project) = &self.project {
             eprintln_unless!(self.quiet, "    project: {}", project);
@@ -655,24 +698,9 @@ mod tests {
     fn publish(project: Option<&str>) -> Publish {
         Publish {
             dry_run: true,
-            report_format: None,
-            output_dir: None,
-            tag: None,
-            override_build_id: None,
-            override_branch: None,
-            override_commit_sha: None,
-            override_pr_number: None,
-            transform_add_prefix: None,
-            transform_strip_prefix: None,
-            token: None,
             project: project.map(|s| s.to_string()),
-            print: false,
-            json: false,
             quiet: true,
-            paths: vec![],
-            skip_missing_files: false,
-            total_parts_count: None,
-            verbose: false,
+            ..Default::default()
         }
     }
 
