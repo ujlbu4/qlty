@@ -290,7 +290,7 @@ impl Executor {
             let file_name = entry.file_name().to_str().unwrap();
             let path = entry.path().to_str().unwrap();
 
-            if config_globset.is_match(file_name)
+            if (config_globset.is_match(file_name) || config_globset.is_match(path))
                 && !path.contains(
                     self.plan
                         .workspace

@@ -100,7 +100,8 @@ pub fn plugin_configs(planner: &Planner) -> Result<HashMap<String, Vec<PluginCon
         if let Some(os_str) = entry.path().file_name() {
             let file_name = os_str.to_os_string();
             for plugin_config in &plugins_configs {
-                if plugin_config.config_globset.is_match(&file_name)
+                if (plugin_config.config_globset.is_match(&file_name)
+                    || plugin_config.config_globset.is_match(entry.path()))
                     && !ignore_globset.is_match(entry.path())
                 {
                     let entry_path = entry.path();
