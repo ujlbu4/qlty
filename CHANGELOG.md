@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.519.0 (2025-04-28)
+
+### New
+
+- Add ast-grep plugin (#1972)
+- Add Swift support for maintainability (complexity, duplication, smells, metrics) (#1971)
+
+### Improved
+
+- Add `**/templates/**` to default exclude patterns (#1967)
+- Include Invocation ID in diagnostic messages for improved debugging (#1968)
+- Simplify a few arguments for `qlty coverage publish` (#1965)
+- Provide a default `.shellcheckrc` when initializing shellcheck (#1973)
+
+### Fixed
+
+- Fix parsing of Clover coverage data with repeated, non-adjacent XML elements (#1964)
+- Fix compilation bug preventing default plugin configs from being installed during `qlty init` (#1983)
+- Update hadolint to version 2.12.1-beta to fix on MacOS (#1981)
+
 ## v0.518.0 (2025-04-25)
 
 ### New
