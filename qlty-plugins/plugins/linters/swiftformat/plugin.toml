@@ -25,7 +25,7 @@ version_command = "swiftformat --version"
 description = "Formatter for Swift"
 supported_platforms = ["macos"]
 
-[plugins.definitions.swiftformat.drivers.lint]
+[plugins.definitions.swiftformat.drivers.format]
 script = "swiftformat ${target}"
 success_codes = [0, 2]
 driver_type = "formatter"
