@@ -27,7 +27,7 @@ supported_platforms = ["macos"]
 
 [plugins.definitions.swiftformat.drivers.format]
 script = "swiftformat ${target}"
-success_codes = [0, 2]
+success_codes = [0]
 driver_type = "formatter"
 output = "rewrite"
 batch = true
