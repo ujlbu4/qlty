@@ -23,6 +23,7 @@ latest_version = "0.55.5"
 known_good_version = "0.55.5"
 version_command = "swiftformat --version"
 description = "Formatter for Swift"
+supported_platforms = ["macos"]
 
 [plugins.definitions.swiftformat.drivers.lint]
 script = "swiftformat ${target}"
