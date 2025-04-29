@@ -2,6 +2,16 @@
 
 ## v0.519.0 (2025-04-28)
 
+### Improved
+
+- Provide a default `.yamllint.yaml` when initializing yamllint (#1973)
+
+### Fixed
+
+- Fix a bug where yamllint would report errors on a hadolint config file (#1973)
+
+## v0.519.0 (2025-04-28)
+
 ### New
 
 - Add ast-grep plugin (#1972)
