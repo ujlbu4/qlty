@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.523.0 (2025-05-01)
+
+### Improved
+
+- Increase detail in error messages from `qlty coverage publish` (#2004)
+
 ## v0.522.0 (2025-05-01)
 
 ### New
