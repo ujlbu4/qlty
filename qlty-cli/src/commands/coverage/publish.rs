@@ -156,6 +156,7 @@ impl Publish {
 
         self.print_section_header(" PREPARING TO UPLOAD... ");
         let upload = Upload::prepare(&token, &mut report)?;
+        self.print_upload(&upload);
 
         self.print_section_header(" UPLOADING... ");
         let timer = Instant::now();
@@ -164,6 +165,15 @@ impl Publish {
         self.print_upload_complete(bytes, timer.elapsed().as_secs_f32(), &upload.url);
 
         CommandSuccess::ok()
+    }
+
+    fn print_upload(&self, upload: &Upload) {
+        if self.quiet {
+            return;
+        }
+
+        eprintln!("    Upload ID: {}", upload.id);
+        eprintln!();
     }
 
     fn build_settings(&self) -> Settings {
