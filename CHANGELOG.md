@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.524.0 (2025-05-03)
+
+### New
+
+- Add a `qlty coverage complete` sub-command (#2011)
+- Add a new `--incomplete` argument to `qlty coverage publish` (#2006)
+- Add optional `--name` argument to `qlty coverage publish` (#2015)
+
+### Improved
+
+- Auto-detect .rubcoop-*.yml files as RuboCop config files (#2016)
+- Print coverage upload ID in `qlty coverage publish` output (#2014)
+
+### Fixed
+
+- Fix coverage format specification for absolute paths on Windows (#2013)
+- Fix bubbling of stderr to tool install log files (#2008)
+
 ## v0.523.0 (2025-05-01)
 
 ### Improved
