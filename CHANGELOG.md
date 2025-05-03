@@ -10,7 +10,7 @@
 
 ### Improved
 
-- Auto-detect .rubcoop-*.yml files as RuboCop config files (#2016)
+- Auto-detect `.rubcoop-*.yml` files as RuboCop config files (#2016)
 - Print coverage upload ID in `qlty coverage publish` output (#2014)
 
 ### Fixed
