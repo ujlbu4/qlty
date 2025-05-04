@@ -10,6 +10,7 @@ pub mod token;
 pub mod transform;
 mod transformer;
 mod utils;
+pub mod validate;
 
 #[macro_use]
 mod macros;

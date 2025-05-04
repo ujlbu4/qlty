@@ -11,6 +11,7 @@ use qlty_coverage::formats::Formats;
 use qlty_coverage::print::{print_report_as_json, print_report_as_text};
 use qlty_coverage::publish::{Plan, Planner, Processor, Reader, Report, Settings, Upload};
 use qlty_coverage::token::load_auth_token;
+use qlty_coverage::validate::{ValidationStatus, Validator};
 use std::io::Write as _;
 use std::path::PathBuf;
 use std::time::Instant;
@@ -110,6 +111,16 @@ pub struct Publish {
     pub total_parts_count: Option<u32>,
 
     #[arg(long)]
+    /// Validate the coverage report before uploading it.
+    /// This will check if the report is valid and minimum number of files are present.
+    pub validate: bool,
+
+    #[arg(long)]
+    /// Custom threshold percentage for validation (0-100). Only applies when --validate is used.
+    /// Default is 90.
+    pub validate_file_threshold: Option<f64>,
+
+    #[arg(long)]
     /// Mark this upload as incomplete. This is useful when issuing multiple qlty coverage publish commands for the same coverage tag.
     /// The server will merge the uploads into a single report when qlty coverage complete is called.
     pub incomplete: bool,
@@ -146,6 +157,25 @@ impl Publish {
 
         if self.print {
             self.show_report(&report)?;
+        }
+
+        if self.validate {
+            let validator = Validator::new(self.validate_file_threshold);
+            let validation_result = validator.validate(&report)?;
+
+            match validation_result.status {
+                ValidationStatus::Valid => {}
+                ValidationStatus::Invalid => {
+                    return Err(anyhow::anyhow!(
+                        "Coverage validation failed: Only {:.2}% of files are present (threshold: {:.2}%)",
+                        validation_result.coverage_percentage,
+                        validation_result.threshold
+                    ).into())
+                }
+                ValidationStatus::NoCoverageData => {
+                    return Err(anyhow::anyhow!("Coverage validation failed: No coverage data found").into())
+                }
+            }
         }
 
         let export = report.export_to(self.output_dir.clone())?;
