@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.525.0 (2025-05-05)
+
+### New
+
+- Add `--validate` option for `qlty coverage publish` (#1915)
+
+### Improved
+
+- Increase maximum issues per file limit from 100 to 500 (#2023)
+- Automatically install sandboxes libyaml when installing Ruby on Linux (#2009)
+
+### Fixed
+
+- Disable binary installs of Ruby on Linux Musl platforms in favor of compilation (#2010)
+- Allow coverage publish `--dry-run` to work without token (#2017)
+
 ## v0.524.0 (2025-05-03)
 
 ### New
