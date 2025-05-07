@@ -45,6 +45,19 @@ use std::{collections::HashMap, fmt::Debug, path::PathBuf};
 use tracing::warn;
 use tracing::{debug, error, info};
 
+#[cfg(unix)]
+fn exit_status_code(status: &std::process::ExitStatus) -> i32 {
+    use std::os::unix::process::ExitStatusExt;
+    status
+        .code()
+        .unwrap_or_else(|| status.signal().unwrap_or_default())
+}
+
+#[cfg(windows)]
+fn exit_status_code(status: &std::process::ExitStatus) -> i32 {
+    status.code().unwrap_or(1)
+}
+
 const MAX_TOOL_INSTALL_ATTEMPTS: u32 = 3;
 
 #[cfg(unix)]
@@ -493,21 +506,6 @@ pub trait Tool: Debug + Sync + Send {
                 .unchecked()
                 .run()?;
 
-            if !cmd_output.status.success() {
-                error!(
-                    "Failed to get version for package {:?}: {:?} {:?}",
-                    self.name(),
-                    cmd_output,
-                    &env,
-                );
-                bail!(
-                    "Failed to get version for package {:?}: (command {} exited with code {})",
-                    self.name(),
-                    command.script,
-                    cmd_output.status.code().unwrap_or_default()
-                );
-            }
-
             // ensure stdout appears before stderr in output string
             let output = format!(
                 "{} {}",
@@ -516,6 +514,23 @@ pub trait Tool: Debug + Sync + Send {
             );
 
             let version_string = output.trim();
+
+            if !cmd_output.status.success() {
+                error!(
+                    "Failed to get version for package {:?}: {:?} {:?}",
+                    self.name(),
+                    cmd_output,
+                    &env,
+                );
+
+                bail!(
+                    "Failed to get version for package {:?}: (command {} exited with code {})\n\n{}",
+                    self.name(),
+                    command.script,
+                    exit_status_code(&cmd_output.status),
+                    &version_string
+                );
+            }
 
             let re = Regex::new(&self.version_regex())
                 .with_context(|| format!("Invalid regex {:?} for package", self.version_regex()))?;
