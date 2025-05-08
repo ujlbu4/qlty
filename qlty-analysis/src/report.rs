@@ -191,8 +191,6 @@ impl Report {
     }
 }
 
-// impl SarifFormatter for Report {}
-
 impl SarifTrait for Report {
     fn issues(&self) -> Vec<Issue> {
         self.issues.clone()

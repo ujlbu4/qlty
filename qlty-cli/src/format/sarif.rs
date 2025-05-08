@@ -1,5 +1,5 @@
 use anyhow::Result;
-// use qlty_check::Report;
+use qlty_check::Report;
 use qlty_config::version::{BUILD_DATE, LONG_VERSION, QLTY_VERSION};
 use qlty_formats::{Formatter, SarifTrait};
 use qlty_types::analysis::v1::{Category, Issue, Language, Level, Location, Message, MessageLevel};
@@ -9,15 +9,8 @@ use std::io::Write;
 
 #[derive(Debug)]
 pub struct SarifReport {
-    // pub verb: ExecutionVerb,
-    // pub target_mode: TargetMode,
     pub messages: Vec<Message>,
-    // pub invocations: Vec<InvocationResult>,
     pub issues: Vec<Issue>,
-    // pub formatted: Vec<PathBuf>,
-    // pub fixed: HashSet<FixedResult>,
-    // pub fixable: HashSet<FixedResult>,
-    // pub counts: IssueCount,
 }
 
 #[derive(Debug)]
@@ -27,7 +20,6 @@ pub struct SarifFormatter {
 
 impl SarifFormatter {
     pub fn new<R: SarifTrait>(report: R) -> Self {
-        // Self { report }
         Self {
             report: SarifReport {
                 messages: report.messages(),
@@ -501,16 +493,16 @@ mod test {
             ..Default::default()
         };
 
-        let report = SarifReport {
-            // verb: ExecutionVerb::Check,
-            // target_mode: TargetMode::default(),
+        let report = Report {
+            verb: ExecutionVerb::Check,
+            target_mode: TargetMode::default(),
             messages: vec![info_message, warning_message],
-            // invocations: vec![],
+            invocations: vec![],
             issues: vec![comprehensive_issue, simple_issue],
-            // formatted: vec![],
-            // fixed: HashSet::new(),
-            // fixable: HashSet::new(),
-            // counts: IssueCount::default(),
+            formatted: vec![],
+            fixed: HashSet::new(),
+            fixable: HashSet::new(),
+            counts: IssueCount::default(),
         };
 
         let formatter = SarifFormatter::boxed(report);
