@@ -211,12 +211,13 @@ impl Smells {
 
     fn write_stdout(&self, workspace: &Workspace, report: &Report) -> Result<()> {
         if self.json {
-            self.write_stdout_json(report.issues)
+            self.write_stdout_json(&report.issues)
         } else if self.sarif {
             let formatter = SarifFormatter::boxed(report.clone());
             formatter.write_to(&mut std::io::stdout())?;
+            Ok(())
         } else {
-            self.write_stdout_text(workspace, report.issues)
+            self.write_stdout_text(workspace, &report.issues)
         }
     }
 
