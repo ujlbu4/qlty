@@ -1,3 +1,4 @@
+use crate::format::SarifFormatter;
 use crate::ui::Highlighter;
 use crate::ui::Steps;
 use crate::{Arguments, CommandError, CommandSuccess};
@@ -46,8 +47,12 @@ pub struct Smells {
     pub quiet: bool,
 
     /// JSON output
-    #[arg(long, hide = true)]
+    #[arg(long, hide = true, conflicts_with = "sarif")]
     json: bool,
+
+    /// SARIF output
+    #[arg(long, conflicts_with = "json")]
+    sarif: bool,
 
     /// Files to analyze
     pub paths: Vec<PathBuf>,
@@ -207,6 +212,10 @@ impl Smells {
     fn write_stdout(&self, workspace: &Workspace, issues: &[Issue]) -> Result<()> {
         if self.json {
             self.write_stdout_json(issues)
+        } else if self.sarif {
+            let formatter = SarifFormatter::boxed(report.clone());
+            formatter.write_to(&mut std::io::stdout())?;
+            Ok(false)
         } else {
             self.write_stdout_text(workspace, issues)
         }
