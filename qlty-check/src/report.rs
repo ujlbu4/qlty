@@ -8,19 +8,6 @@ use std::{
     path::PathBuf,
 };
 
-/*
-from: qlty-analysis/src/report.rs
-
-#[derive(Clone, Debug, Serialize, Default)]
-pub struct Report {
-    pub metadata: Metadata,
-    pub messages: Vec<Message>,
-    pub invocations: Vec<Invocation>,
-    pub issues: Vec<Issue>,
-    pub stats: Vec<Stats>,
-}
-*/
-
 #[derive(Clone, Debug)]
 pub struct Report {
     pub verb: ExecutionVerb,
@@ -89,7 +76,6 @@ impl Report {
     }
 }
 
-// impl SarifFormatter for Report {}
 impl SarifTrait for Report {
     fn issues(&self) -> Vec<Issue> {
         self.issues.clone()
