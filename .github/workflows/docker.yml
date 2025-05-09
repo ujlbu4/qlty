@@ -180,7 +180,10 @@ jobs:
           images=($(printf '${{ github.repository }}@sha256:%s ' *))
           echo tags: "${tags[@]}"
           echo images: "${images[@]}" 
-          docker buildx imagetools create "${tags[@]}" "${images[@]}"
+          docker manifest create "${tags[@]}" "${images[@]}"
+
+          docker manifest push "${tags[@]}"
+        # docker buildx imagetools create "${tags[@]}" "${images[@]}"
 
       # confirm merged image manifests
       - name: Inspect Image Manifests
