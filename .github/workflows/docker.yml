@@ -105,7 +105,8 @@ jobs:
           platforms: ${{ matrix.platform }}
           push: ${{ github.event_name != 'pull_request' }}
           # tags: ${{ steps.meta.outputs.tags }}
-          tags: ghcr.io/${{ github.repository }}
+          # tags: ghcr.io/${{ github.repository }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -167,12 +168,20 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
 
-      - name: Create manifest list and push
+      - name: Create Manifests and Push
+        id: manifests
         working-directory: ${{ runner.temp }}/digests
-        run: |
-          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ env.REGISTRY_IMAGE }}@sha256:%s ' *)
+        run: |-
+          tags=($(jq -cr '[.tags[] | "-t \(.)"] | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON"))
+          images=($(printf '${{ github.repository }}@sha256:%s ' *))
+          docker buildx imagetools create "${tags[@]}" "${images[@]}"
 
-      - name: Inspect image
-        run: |
-          docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ steps.meta.outputs.version }}
+      # confirm merged image manifests
+      - name: Inspect Image Manifests
+        id: inspect
+        run: |-
+          tags=($(jq -cr '.tags[] | select(. | endswith(":latest") | not)' <<< "$DOCKER_METADATA_OUTPUT_JSON"))
+          for tag in "${tags[@]}"; do
+            docker buildx imagetools inspect $tag
+            echo
+          done
