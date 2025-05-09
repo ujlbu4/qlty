@@ -51,16 +51,16 @@ jobs:
       #   if: github.event_name != 'pull_request'
       #   uses: sigstore/cosign-installer@v3.8.2
 
-      - name: Set up Docker
-        uses: docker/setup-docker-action@v4
-        with:
-          daemon-config: |
-            {
-              "debug": true,
-              "features": {
-                "containerd-snapshotter": true
-              }
-            }
+      # - name: Set up Docker
+      #   uses: docker/setup-docker-action@v4
+      #   with:
+      #     daemon-config: |
+      #       {
+      #         "debug": true,
+      #         "features": {
+      #           "containerd-snapshotter": true
+      #         }
+      #       }
       
       - name: Log into registry ${{ env.REGISTRY }}
         if: github.event_name != 'pull_request'
