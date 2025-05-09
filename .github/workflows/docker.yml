@@ -184,7 +184,7 @@ jobs:
 
           # Extract the digest
           REF=$(jq -r '.tags[0]' <<< "$DOCKER_METADATA_OUTPUT_JSON")
-          DIGEST=$(docker buildx imagetools inspect "$REF" --format '{{ .Digest }}')
+          DIGEST=$(docker buildx imagetools inspect "$REF" | grep -i '^Digest:' | awk '{ print $2 }')
 
           echo "Image digest: $DIGEST"
           echo "digest=$DIGEST" >> $GITHUB_OUTPUT
