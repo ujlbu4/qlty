@@ -176,11 +176,15 @@ jobs:
         id: manifests
         working-directory: ${{ runner.temp }}/digests
         run: |-
-          tags=($(jq -cr '[.tags[] | "-t \(.)"] | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON"))
+          tags=($(jq -cr '[.tags[] | "\(.)"] | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON"))
           images=($(printf '${{ github.repository }}@sha256:%s ' *))
           echo tags: "${tags[@]}"
           echo images: "${images[@]}" 
-          docker manifest create "${tags[@]}" "${images[@]}"
+          for tag in "${tags[@]}"; do
+            docker manifest create $tag "${images[@]}"
+            echo
+          done
+          
 
           docker manifest push "${tags[@]}"
         # docker buildx imagetools create "${tags[@]}" "${images[@]}"
