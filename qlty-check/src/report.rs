@@ -1,7 +1,6 @@
 use crate::{results::FixedResult, InvocationResult};
 use itertools::Itertools;
 use qlty_analysis::{workspace_entries::TargetMode, IssueCount};
-use qlty_formats::SarifTrait;
 use qlty_types::analysis::v1::{ExecutionVerb, Issue, Level, Message};
 use std::{
     collections::{HashMap, HashSet},
@@ -73,15 +72,5 @@ impl Report {
 
         paths.sort();
         paths
-    }
-}
-
-impl SarifTrait for Report {
-    fn issues(&self) -> Vec<Issue> {
-        self.issues.clone()
-    }
-
-    fn messages(&self) -> Vec<Message> {
-        self.messages.clone()
     }
 }
