@@ -337,6 +337,7 @@ impl Formatter for SarifFormatter {
 mod test {
     use super::*;
     use qlty_analysis::{workspace_entries::TargetMode, IssueCount};
+    use qlty_check::Report;
     use qlty_types::analysis::v1::{
         Category, ExecutionVerb, Mode, Range, Replacement, Suggestion, SuggestionSource,
     };
