@@ -190,13 +190,15 @@ jobs:
           images=($(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *))
           echo tags: "${tags[@]}"
           echo images: "${images[@]}" 
-          for tag in "${tags[@]}"; do
-            docker manifest create $tag "${images[@]}"
-            echo
-          done
+          docker buildx imagetools create "${tags[@]}" "${images[@]}"
+
+        # for tag in "${tags[@]}"; do
+        #   docker manifest create $tag "${images[@]}"
+        #   echo
+        # done
           
 
-          docker manifest push "${tags[@]}"
+        # docker manifest push "${tags[@]}"
         # docker buildx imagetools create "${tags[@]}" "${images[@]}"
 
       # confirm merged image manifests
