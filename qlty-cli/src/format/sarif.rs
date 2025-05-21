@@ -24,7 +24,7 @@ impl SarifFormatter {
             report: SarifReport {
                 messages: report.messages(),
                 issues: report.issues(),
-            }
+            },
         }
     }
 
