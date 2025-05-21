@@ -187,7 +187,7 @@ jobs:
         working-directory: ${{ runner.temp }}/digests
         run: |-
           tags=($(jq -cr '[.tags[] | "\(.)"] | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON"))
-          images=($(printf '${{ github.repository }}@sha256:%s ' *))
+          images=($(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *))
           echo tags: "${tags[@]}"
           echo images: "${images[@]}" 
           for tag in "${tags[@]}"; do
