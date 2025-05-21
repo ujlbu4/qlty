@@ -1,35 +1,24 @@
 use anyhow::Result;
-use qlty_check::Report;
 use qlty_config::version::{BUILD_DATE, LONG_VERSION, QLTY_VERSION};
-use qlty_formats::{Formatter, SarifTrait};
+use qlty_formats::Formatter;
 use qlty_types::analysis::v1::{Category, Issue, Language, Level, Location, Message, MessageLevel};
 use serde_json::{json, Map, Value};
 use std::convert::TryFrom;
 use std::io::Write;
 
 #[derive(Debug)]
-pub struct SarifReport {
+pub struct SarifFormatter {
     pub messages: Vec<Message>,
     pub issues: Vec<Issue>,
 }
 
-#[derive(Debug)]
-pub struct SarifFormatter {
-    report: SarifReport,
-}
-
 impl SarifFormatter {
-    pub fn new<R: SarifTrait>(report: R) -> Self {
-        Self {
-            report: SarifReport {
-                messages: report.messages(),
-                issues: report.issues(),
-            },
-        }
+    pub fn new(messages: Vec<Message>, issues: Vec<Issue>) -> Self {
+        Self { messages, issues }
     }
 
-    pub fn boxed<R: SarifTrait>(report: R) -> Box<dyn Formatter> {
-        Box::new(Self::new(report))
+    pub fn boxed(messages: Vec<Message>, issues: Vec<Issue>) -> Box<dyn Formatter> {
+        Box::new(Self::new(messages, issues))
     }
 
     fn convert_level(&self, level: Level) -> &'static str {
@@ -278,7 +267,7 @@ impl SarifFormatter {
         let mut rules = vec![];
         let mut rule_ids = std::collections::HashSet::new();
 
-        for issue in &self.report.issues {
+        for issue in &self.issues {
             if !rule_ids.contains(&issue.rule_key) {
                 rule_ids.insert(issue.rule_key.clone());
 
@@ -295,14 +284,12 @@ impl SarifFormatter {
         }
 
         let results = self
-            .report
             .issues
             .iter()
             .map(|issue| self.serialize_issue(issue))
             .collect::<Vec<_>>();
 
         let notifications = self
-            .report
             .messages
             .iter()
             .map(|message| self.serialize_notification(message))
@@ -505,7 +492,7 @@ mod test {
             counts: IssueCount::default(),
         };
 
-        let formatter = SarifFormatter::boxed(report);
+        let formatter = SarifFormatter::boxed(report.messages.clone(), report.issues.clone());
         let output = formatter.read().unwrap();
         let output_str = String::from_utf8_lossy(&output);
 
