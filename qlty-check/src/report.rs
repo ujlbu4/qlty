@@ -1,11 +1,25 @@
 use crate::{results::FixedResult, InvocationResult};
 use itertools::Itertools;
 use qlty_analysis::{workspace_entries::TargetMode, IssueCount};
+use qlty_formats::SarifTrait;
 use qlty_types::analysis::v1::{ExecutionVerb, Issue, Level, Message};
 use std::{
     collections::{HashMap, HashSet},
     path::PathBuf,
 };
+
+/*
+from: qlty-analysis/src/report.rs
+
+#[derive(Clone, Debug, Serialize, Default)]
+pub struct Report {
+    pub metadata: Metadata,
+    pub messages: Vec<Message>,
+    pub invocations: Vec<Invocation>,
+    pub issues: Vec<Issue>,
+    pub stats: Vec<Stats>,
+}
+*/
 
 #[derive(Clone, Debug)]
 pub struct Report {
@@ -72,5 +86,16 @@ impl Report {
 
         paths.sort();
         paths
+    }
+}
+
+// impl SarifFormatter for Report {}
+impl SarifTrait for Report {
+    fn issues(&self) -> Vec<Issue> {
+        self.issues.clone()
+    }
+
+    fn messages(&self) -> Vec<Message> {
+        self.messages.clone()
     }
 }
