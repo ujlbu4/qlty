@@ -106,7 +106,7 @@ impl Smells {
 
         steps.start(SPARKLES, "Reporting... ");
         println!();
-        self.write_stdout(&workspace, &report.issues)?;
+        self.write_stdout(&workspace, &report)?;
 
         CommandSuccess::ok()
     }
@@ -209,15 +209,14 @@ impl Smells {
         Ok(executor.report())
     }
 
-    fn write_stdout(&self, workspace: &Workspace, issues: &[Issue]) -> Result<()> {
+    fn write_stdout(&self, workspace: &Workspace, report: &Report) -> Result<()> {
         if self.json {
-            self.write_stdout_json(issues)
+            self.write_stdout_json(report.issues.clone())
         } else if self.sarif {
             let formatter = SarifFormatter::boxed(report.clone());
             formatter.write_to(&mut std::io::stdout())?;
-            Ok(false)
         } else {
-            self.write_stdout_text(workspace, issues)
+            self.write_stdout_text(workspace, report.issues.clone())
         }
     }
 
